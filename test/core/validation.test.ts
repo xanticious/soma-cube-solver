@@ -1,16 +1,16 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from "vitest";
 
 import {
   validatePlacements,
   isCubeSolved,
   isPlacementValid,
-} from '@/core/validation';
+} from "@/core/validation";
 
-import type { Placement } from '@/core/types';
+import type { Placement } from "@/core/types";
 
-describe('validation', () => {
-  describe('validatePlacements', () => {
-    it('empty placements are valid', () => {
+describe("validation", () => {
+  describe("validatePlacements", () => {
+    it("empty placements are valid", () => {
       const result = validatePlacements([], 3);
 
       expect(result.valid).toBe(true);
@@ -20,10 +20,10 @@ describe('validation', () => {
       expect(result.outOfBounds).toHaveLength(0);
     });
 
-    it('detects out-of-bounds placement', () => {
+    it("detects out-of-bounds placement", () => {
       const placements: Placement[] = [
         {
-          piece: 'L',
+          piece: "L",
 
           orientation: { a: 0, b: 0, c: 0 },
 
@@ -36,10 +36,10 @@ describe('validation', () => {
       expect(result.outOfBounds.length).toBeGreaterThan(0);
     });
 
-    it('detects overlapping placements', () => {
+    it("detects overlapping placements", () => {
       const placements: Placement[] = [
         {
-          piece: 'V',
+          piece: "V",
 
           orientation: { a: 0, b: 0, c: 0 },
 
@@ -47,7 +47,7 @@ describe('validation', () => {
         },
 
         {
-          piece: 'T',
+          piece: "T",
 
           orientation: { a: 0, b: 0, c: 0 },
 
@@ -61,10 +61,10 @@ describe('validation', () => {
     });
   });
 
-  describe('isPlacementValid', () => {
-    it('first placement in empty grid is valid if in bounds', () => {
+  describe("isPlacementValid", () => {
+    it("first placement in empty grid is valid if in bounds", () => {
       const placement: Placement = {
-        piece: 'V',
+        piece: "V",
 
         orientation: { a: 0, b: 0, c: 0 },
 
@@ -74,10 +74,10 @@ describe('validation', () => {
       expect(isPlacementValid([], placement, 3)).toBe(true);
     });
 
-    it('rejects placement that overlaps existing', () => {
+    it("rejects placement that overlaps existing", () => {
       const existing: Placement[] = [
         {
-          piece: 'V',
+          piece: "V",
 
           orientation: { a: 0, b: 0, c: 0 },
 
@@ -86,7 +86,7 @@ describe('validation', () => {
       ];
 
       const newPlacement: Placement = {
-        piece: 'L',
+        piece: "L",
 
         orientation: { a: 0, b: 0, c: 0 },
 
@@ -97,8 +97,8 @@ describe('validation', () => {
     });
   });
 
-  describe('isCubeSolved', () => {
-    it('empty placements is not solved', () => {
+  describe("isCubeSolved", () => {
+    it("empty placements is not solved", () => {
       expect(isCubeSolved([])).toBe(false);
     });
   });

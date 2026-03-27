@@ -1,6 +1,6 @@
-import solutionsData from '../../data/solutions.json';
+import solutionsData from "../../data/solutions.json";
 
-import styles from './SolutionBrowser.module.css';
+import styles from "./SolutionBrowser.module.css";
 
 interface SolutionEntry {
   notation: string;
@@ -33,10 +33,10 @@ export function createSolutionBrowser(
         <div class="${styles.header}">
           <h2>Soma Cube Solutions</h2>
           <div class="${styles.filterToggle}">
-            <button class="${styles.filterBtn} ${!showDistinctOnly ? styles.filterBtnActive : ''}" data-filter="all">
+            <button class="${styles.filterBtn} ${!showDistinctOnly ? styles.filterBtnActive : ""}" data-filter="all">
               All (${solutions.length})
             </button>
-            <button class="${styles.filterBtn} ${showDistinctOnly ? styles.filterBtnActive : ''}" data-filter="distinct">
+            <button class="${styles.filterBtn} ${showDistinctOnly ? styles.filterBtnActive : ""}" data-filter="distinct">
               Distinct (${solutions.filter((s) => s.distinct).length})
             </button>
           </div>
@@ -55,12 +55,12 @@ export function createSolutionBrowser(
                 <div class="${styles.solutionRow}" data-notation="${encodeURIComponent(sol.notation)}">
                   <span class="${styles.solutionIndex}">#${i + 1}</span>
                   <span class="${styles.solutionNotation}">${escapeHtml(sol.notation)}</span>
-                  ${sol.distinct ? `<span class="${styles.distinctBadge}">distinct</span>` : ''}
+                  ${sol.distinct ? `<span class="${styles.distinctBadge}">distinct</span>` : ""}
                 </div>
               `,
                   )
 
-                  .join('')
+                  .join("")
           }
         </div>
       </div>
@@ -68,20 +68,20 @@ export function createSolutionBrowser(
 
     // Event listeners
 
-    container.querySelectorAll('[data-filter]').forEach((btn) => {
-      btn.addEventListener('click', () => {
+    container.querySelectorAll("[data-filter]").forEach((btn) => {
+      btn.addEventListener("click", () => {
         const filter = (btn as HTMLElement).dataset.filter;
 
-        showDistinctOnly = filter === 'distinct';
+        showDistinctOnly = filter === "distinct";
 
         render();
       });
     });
 
-    container.querySelectorAll('[data-notation]').forEach((row) => {
-      row.addEventListener('click', () => {
+    container.querySelectorAll("[data-notation]").forEach((row) => {
+      row.addEventListener("click", () => {
         const notation = decodeURIComponent(
-          (row as HTMLElement).dataset.notation ?? '',
+          (row as HTMLElement).dataset.notation ?? "",
         );
 
         callbacks.onSelectSolution(notation);
@@ -89,7 +89,7 @@ export function createSolutionBrowser(
     });
 
     container.querySelectorAll("[data-action='build']").forEach((btn) => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener("click", () => {
         callbacks.onNavigateToBuild();
       });
     });
@@ -99,7 +99,7 @@ export function createSolutionBrowser(
 
   return {
     destroy() {
-      container.innerHTML = '';
+      container.innerHTML = "";
     },
   };
 }
@@ -107,11 +107,11 @@ export function createSolutionBrowser(
 function escapeHtml(str: string): string {
   return str
 
-    .replace(/&/g, '&amp;')
+    .replace(/&/g, "&amp;")
 
-    .replace(/</g, '&lt;')
+    .replace(/</g, "&lt;")
 
-    .replace(/>/g, '&gt;')
+    .replace(/>/g, "&gt;")
 
-    .replace(/"/g, '&quot;');
+    .replace(/"/g, "&quot;");
 }

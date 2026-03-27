@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from "vitest";
 
 import {
   applyOrientation,
@@ -6,13 +6,13 @@ import {
   distinctPieceOrientations,
   normalizePositions,
   transformOffsets,
-} from '@/core/rotations';
+} from "@/core/rotations";
 
-import { PIECE_OFFSETS } from '@/core/pieces';
+import { PIECE_OFFSETS } from "@/core/pieces";
 
-describe('rotations', () => {
-  describe('applyOrientation', () => {
-    it('identity leaves vector unchanged', () => {
+describe("rotations", () => {
+  describe("applyOrientation", () => {
+    it("identity leaves vector unchanged", () => {
       const v = { x: 1, y: 2, z: 3 };
 
       const result = applyOrientation(v, { a: 0, b: 0, c: 0 });
@@ -20,7 +20,7 @@ describe('rotations', () => {
       expect(result).toEqual(v);
     });
 
-    it('a=1 rotates 90° around Z', () => {
+    it("a=1 rotates 90° around Z", () => {
       const v = { x: 1, y: 0, z: 0 };
 
       const result = applyOrientation(v, { a: 1, b: 0, c: 0 });
@@ -28,7 +28,7 @@ describe('rotations', () => {
       expect(result).toEqual({ x: 0, y: 1, z: 0 });
     });
 
-    it('a=2 rotates 180° around Z', () => {
+    it("a=2 rotates 180° around Z", () => {
       const v = { x: 1, y: 0, z: 0 };
 
       const result = applyOrientation(v, { a: 2, b: 0, c: 0 });
@@ -36,7 +36,7 @@ describe('rotations', () => {
       expect(result).toEqual({ x: -1, y: 0, z: 0 });
     });
 
-    it('b=1 rotates 90° around X', () => {
+    it("b=1 rotates 90° around X", () => {
       const v = { x: 0, y: 1, z: 0 };
 
       const result = applyOrientation(v, { a: 0, b: 1, c: 0 });
@@ -44,7 +44,7 @@ describe('rotations', () => {
       expect(result).toEqual({ x: 0, y: 0, z: 1 });
     });
 
-    it('c=1 rotates 90° around Y', () => {
+    it("c=1 rotates 90° around Y", () => {
       const v = { x: 0, y: 0, z: 1 };
 
       const result = applyOrientation(v, { a: 0, b: 0, c: 1 });
@@ -53,14 +53,14 @@ describe('rotations', () => {
     });
   });
 
-  describe('DISTINCT_ORIENTATIONS', () => {
-    it('has exactly 24 orientations', () => {
+  describe("DISTINCT_ORIENTATIONS", () => {
+    it("has exactly 24 orientations", () => {
       expect(DISTINCT_ORIENTATIONS).toHaveLength(24);
     });
   });
 
-  describe('transformOffsets', () => {
-    it('applies identity + translation', () => {
+  describe("transformOffsets", () => {
+    it("applies identity + translation", () => {
       const offsets = [
         { x: 0, y: 0, z: 0 },
 
@@ -83,8 +83,8 @@ describe('rotations', () => {
     });
   });
 
-  describe('normalizePositions', () => {
-    it('translates min to origin', () => {
+  describe("normalizePositions", () => {
+    it("translates min to origin", () => {
       const positions = [
         { x: 5, y: 3, z: 1 },
 
@@ -100,7 +100,7 @@ describe('rotations', () => {
       ]);
     });
 
-    it('sorts lexicographically', () => {
+    it("sorts lexicographically", () => {
       const positions = [
         { x: 1, y: 0, z: 0 },
 
@@ -119,8 +119,8 @@ describe('rotations', () => {
     });
   });
 
-  describe('distinctPieceOrientations', () => {
-    it('V piece has correct number of distinct orientations', () => {
+  describe("distinctPieceOrientations", () => {
+    it("V piece has correct number of distinct orientations", () => {
       // V is a flat L-triomino, should have 12 orientations (in 3D)
 
       const orientations = distinctPieceOrientations(PIECE_OFFSETS.V);
@@ -130,8 +130,8 @@ describe('rotations', () => {
       expect(orientations.length).toBeLessThanOrEqual(24);
     });
 
-    it('each returned orientation produces a unique shape', () => {
-      for (const pieceName of ['V', 'L', 'T', 'Z', 'A', 'B', 'P'] as const) {
+    it("each returned orientation produces a unique shape", () => {
+      for (const pieceName of ["V", "L", "T", "Z", "A", "B", "P"] as const) {
         const offsets = PIECE_OFFSETS[pieceName];
 
         const orientations = distinctPieceOrientations(offsets);
@@ -143,7 +143,7 @@ describe('rotations', () => {
 
           const normalized = normalizePositions(transformed);
 
-          const key = normalized.map((p) => `${p.x},${p.y},${p.z}`).join('|');
+          const key = normalized.map((p) => `${p.x},${p.y},${p.z}`).join("|");
 
           keys.add(key);
         }

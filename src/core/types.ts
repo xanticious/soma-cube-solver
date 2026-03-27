@@ -40,7 +40,7 @@ export interface Placement {
   position: Vec3;
 }
 
-export const PIECE_NAMES = ['V', 'L', 'T', 'Z', 'A', 'B', 'P'] as const;
+export const PIECE_NAMES = ["V", "L", "T", "Z", "A", "B", "P"] as const;
 
 export type PieceName = (typeof PIECE_NAMES)[number];
 

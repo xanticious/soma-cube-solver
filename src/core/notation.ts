@@ -1,4 +1,4 @@
-import { PIECE_NAMES } from './types';
+import { PIECE_NAMES } from "./types";
 
 import type {
   Orientation,
@@ -6,18 +6,24 @@ import type {
   Placement,
   RotationStep,
   Vec3,
-} from './types';
+} from "./types";
 
 /**
- * Notation format:
- *   {Piece}-a{0-3}-b{0-3}-c{0-3}-x{N}-y{N}-z{N}
+ * URL-friendly notation format:
+ *   {Piece}{a}{b}{c}.{x}.{y}.{z}
  *
- * A full solution is 7 comma-separated placement tokens.
- * Example: V-a0-b0-c0-x0-y0-z0,L-a1-b2-c0-x1-y0-z2
+ * - Piece: single uppercase letter (V, L, T, Z, A, B, P)
+ * - a, b, c: single digits 0-3 (rotation steps), packed with no separator
+ * - x, y, z: integer coordinates, dot-separated
+ *
+ * A full solution is multiple placement tokens separated by '~'.
+ * Example: V000.0.0.0~L120.1.0.2
+ *
+ * All characters are URL-safe (no percent-encoding needed).
  */
 
 const PLACEMENT_REGEX =
-  /^([VLTZABP])-a([0-3])-b([0-3])-c([0-3])-x(-?\d+)-y(-?\d+)-z(-?\d+)$/;
+  /^([VLTZABP])([0-3])([0-3])([0-3])\.(-?\d+)\.(-?\d+)\.(-?\d+)$/;
 
 function isRotationStep(n: number): n is RotationStep {
   return n === 0 || n === 1 || n === 2 || n === 3;
@@ -28,7 +34,7 @@ function isPieceName(s: string): s is PieceName {
 }
 
 export function serializePlacement(p: Placement): string {
-  return `${p.piece}-a${p.orientation.a}-b${p.orientation.b}-c${p.orientation.c}-x${p.position.x}-y${p.position.y}-z${p.position.z}`;
+  return `${p.piece}${p.orientation.a}${p.orientation.b}${p.orientation.c}.${p.position.x}.${p.position.y}.${p.position.z}`;
 }
 
 export function parsePlacement(token: string): Placement | null {
@@ -63,11 +69,11 @@ export function parsePlacement(token: string): Placement | null {
 }
 
 export function serializeSolution(placements: Placement[]): string {
-  return placements.map(serializePlacement).join(',');
+  return placements.map(serializePlacement).join("~");
 }
 
 export function parseSolution(notation: string): Placement[] | null {
-  const tokens = notation.split(',');
+  const tokens = notation.split("~");
 
   const placements: Placement[] = [];
 

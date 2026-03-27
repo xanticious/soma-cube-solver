@@ -3,24 +3,24 @@
  * Run with: npm run solve
  */
 
-import { writeFileSync, mkdirSync } from 'fs';
+import { writeFileSync, mkdirSync } from "fs";
 
-import { resolve, dirname } from 'path';
+import { resolve, dirname } from "path";
 
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from "url";
 
 import {
   solveAll,
   filterDistinctSolutions,
   serializeSolution,
   solutionCanonicalKeyUnderRotation,
-} from '../src/core/index.ts';
+} from "../src/core/index.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 
 const __dirname = dirname(__filename);
 
-console.log('Solving Soma cube...');
+console.log("Solving Soma cube...");
 
 const startTime = Date.now();
 
@@ -58,7 +58,7 @@ const output = allSolutions.map((sol) => {
 
 // (The delete trick ensures exactly one `distinct: true` per equivalence class)
 
-const outPath = resolve(__dirname, '../src/data/solutions.json');
+const outPath = resolve(__dirname, "../src/data/solutions.json");
 
 mkdirSync(dirname(outPath), { recursive: true });
 

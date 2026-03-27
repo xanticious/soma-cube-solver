@@ -1,18 +1,18 @@
-import * as THREE from 'three';
+import * as THREE from "three";
 
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
-import type { Placement, PieceName, Vec3 } from '../../core/types';
+import type { Placement, PieceName, Vec3 } from "../../core/types";
 
-import { PIECE_OFFSETS, PIECE_COLORS } from '../../core/pieces';
+import { PIECE_OFFSETS, PIECE_COLORS } from "../../core/pieces";
 
-import { transformOffsets } from '../../core/rotations';
+import { transformOffsets } from "../../core/rotations";
 
 const CUBELET_SIZE = 1;
 
 const CUBELET_GAP = 0.04;
 
-const EDGE_COLOR = '#333333';
+const EDGE_COLOR = "#333333";
 
 export interface SceneContext {
   renderer: THREE.WebGLRenderer;
@@ -240,7 +240,7 @@ export function renderFloatingPiece(
 
   piece: PieceName,
 
-  orientation: import('../../core/types').Orientation,
+  orientation: import("../../core/types").Orientation,
 
   position: Vec3,
 ): void {
@@ -251,7 +251,7 @@ export function renderFloatingPiece(
   for (let i = 0; i < cells.length; i++) {
     const cell = cells[i]!;
 
-    const color = i === 0 ? '#CC0000' : '#3399FF';
+    const color = i === 0 ? "#CC0000" : "#3399FF";
 
     const cubelet = createCubelet(cell, color, 0.7);
 

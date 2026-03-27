@@ -1,536 +1,277 @@
-import type {
-  Orientation,
-  PieceName,
-  Placement,
-  RotationStep,
-} from '../../core/types';
-
-import { PIECE_NAMES, GRID_SIZE_BUILDER } from '../../core/types';
-
-import { PIECE_COLORS } from '../../core/pieces';
-
-import { parseSolution, serializeSolution } from '../../core/notation';
-
-import { isPlacementValid } from '../../core/validation';
-
+import type { PieceName, Placement, RotationStep } from "../../core/types";
+import { PIECE_NAMES, GRID_SIZE_BUILDER } from "../../core/types";
+import { PIECE_COLORS } from "../../core/pieces";
+import { parseSolution, serializeSolution } from "../../core/notation";
 import {
   createScene,
   renderPlacements,
-  renderFloatingPiece,
-  clearFloatingPieces,
   renderGrid,
   setCameraForGrid,
   type SceneContext,
-} from '../Scene/Scene';
-
-import styles from './BuilderView.module.css';
-
-type PlacementPhase = 'idle' | 'selectLayer' | 'selectColumn' | 'selectRow';
-
+} from "../Scene/Scene";
+import styles from "./BuilderView.module.css";
 interface BuilderState {
   placements: Placement[];
-
   usedPieces: Set<PieceName>;
-
   selectedPiece: PieceName | null;
-
-  orientation: Orientation;
-
-  phase: PlacementPhase;
-
-  selectedLayer: number;
-
-  selectedColumn: number;
 }
-
 export interface BuilderViewCallbacks {
   onBack(): void;
 }
-
+const ROTATION_OPTIONS: RotationStep[] = [0, 1, 2, 3];
+const ROTATION_LABELS: Record<RotationStep, string> = {
+  0: "0°",
+  1: "90°",
+  2: "180°",
+  3: "270°",
+};
+function getPlacementForPiece(
+  state: BuilderState,
+  piece: PieceName,
+): Placement | undefined {
+  return state.placements.find((p) => p.piece === piece);
+}
+function isVisible(state: BuilderState, piece: PieceName): boolean {
+  return state.usedPieces.has(piece);
+}
 export function createBuilderView(
   container: HTMLElement,
-
   initialNotation: string | null,
-
   callbacks: BuilderViewCallbacks,
 ): { destroy(): void } {
   let sceneCtx: SceneContext | null = null;
-
   const state: BuilderState = {
     placements: [],
-
     usedPieces: new Set(),
-
     selectedPiece: null,
-
-    orientation: { a: 0, b: 0, c: 0 },
-
-    phase: 'idle',
-
-    selectedLayer: 0,
-
-    selectedColumn: 0,
-  };
-
-  // Parse initial notation if provided
+  }; // Parse initial notation if provided
 
   if (initialNotation) {
     const parsed = parseSolution(initialNotation);
-
     if (parsed) {
       state.placements = parsed;
-
       for (const p of parsed) {
         state.usedPieces.add(p.piece);
       }
     }
   }
-
-  function nextRotationStep(step: RotationStep): RotationStep {
-    return ((step + 1) % 4) as RotationStep;
+  function getOrCreatePlacement(piece: PieceName): Placement {
+    let existing = getPlacementForPiece(state, piece);
+    if (!existing) {
+      existing = {
+        piece,
+        orientation: { a: 0, b: 0, c: 0 },
+        position: { x: 0, y: 0, z: 0 },
+      };
+      state.placements.push(existing);
+    }
+    return existing;
   }
-
-  function getPhasePrompt(): string {
-    switch (state.phase) {
-      case 'idle':
-        return 'Select a piece from the palette';
-
-      case 'selectLayer':
-        return 'Click to select Layer (Y)';
-
-      case 'selectColumn':
-        return `Layer ${state.selectedLayer} — Click to select Column (X)`;
-
-      case 'selectRow':
-        return `Layer ${state.selectedLayer}, Col ${state.selectedColumn} — Click to select Row (Z)`;
+  function removePlacement(piece: PieceName) {
+    state.placements = state.placements.filter((p) => p.piece !== piece);
+  }
+  function updateScene() {
+    if (!sceneCtx) return;
+    const visiblePlacements = state.placements.filter((p) =>
+      state.usedPieces.has(p.piece),
+    );
+    renderPlacements(sceneCtx, visiblePlacements);
+    updateNotationBar();
+    updateUrl();
+  }
+  function updateNotationBar() {
+    const visiblePlacements = state.placements.filter((p) =>
+      state.usedPieces.has(p.piece),
+    );
+    const notationStr =
+      visiblePlacements.length > 0
+        ? serializeSolution(visiblePlacements)
+        : "(empty)";
+    const notationEl = container.querySelector(`.${styles.notation}`);
+    if (notationEl) {
+      notationEl.textContent = notationStr;
     }
   }
-
+  function updateUrl() {
+    const visiblePlacements = state.placements.filter((p) =>
+      state.usedPieces.has(p.piece),
+    );
+    if (visiblePlacements.length > 0) {
+      const notation = serializeSolution(visiblePlacements);
+      const hash = `#notation=${notation}`;
+      window.history.replaceState(null, "", `/build${hash}`);
+    } else {
+      window.history.replaceState(null, "", "/build");
+    }
+  }
+  function renderFormPanel(): string {
+    if (!state.selectedPiece) {
+      return `<div class="${styles.formPanel}"><p class="${styles.formEmpty}">Click a piece to configure it</p></div>`;
+    }
+    const piece = state.selectedPiece;
+    const placement = getPlacementForPiece(state, piece);
+    const visible = isVisible(state, piece);
+    const pos = placement?.position ?? { x: 0, y: 0, z: 0 };
+    const orient = placement?.orientation ?? {
+      a: 0 as RotationStep,
+      b: 0 as RotationStep,
+      c: 0 as RotationStep,
+    };
+    function rotationSelect(
+      label: string,
+      axis: string,
+      value: RotationStep,
+    ): string {
+      const options = ROTATION_OPTIONS.map(
+        (r) =>
+          `<option value="${r}" ${r === value ? "selected" : ""}>${ROTATION_LABELS[r]}</option>`,
+      ).join("");
+      return `        <label class="${styles.formField}">          <span class="${styles.formLabel}">${label}</span>          <select data-rotation="${axis}" class="${styles.formSelect}">${options}</select>        </label>      `;
+    }
+    function numberInput(label: string, axis: string, value: number): string {
+      return `        <label class="${styles.formField}">          <span class="${styles.formLabel}">${label}</span>          <input type="number" data-position="${axis}" class="${styles.formInput}" min="0" max="8" value="${value}" />        </label>      `;
+    }
+    return `      <div class="${styles.formPanel}">        <div class="${styles.formHeader}">          <span class="${styles.colorSwatch}" style="background:${PIECE_COLORS[piece]}"></span>          <strong>Piece ${piece}</strong>        </div>        <label class="${styles.formField} ${styles.formCheckboxField}">          <input type="checkbox" data-visible ${visible ? "checked" : ""} />          <span>Visible</span>        </label>        <fieldset class="${styles.formFieldset}">          <legend>Position</legend>          ${numberInput("X", "x", pos.x)}          ${numberInput("Y", "y", pos.y)}          ${numberInput("Z", "z", pos.z)}        </fieldset>        <fieldset class="${styles.formFieldset}">          <legend>Rotation</legend>          ${rotationSelect("A (Pitch)", "a", orient.a)}          ${rotationSelect("B (Yaw)", "b", orient.b)}          ${rotationSelect("C (Roll)", "c", orient.c)}        </fieldset>      </div>    `;
+  }
   function renderUI() {
+    const visiblePlacements = state.placements.filter((p) =>
+      state.usedPieces.has(p.piece),
+    );
     const notationStr =
-      state.placements.length > 0
-        ? serializeSolution(state.placements)
-        : '(empty)';
-
+      visiblePlacements.length > 0
+        ? serializeSolution(visiblePlacements)
+        : "(empty)";
     const pieceBtns = PIECE_NAMES.map((name) => {
-      const used = state.usedPieces.has(name);
-
       const active = state.selectedPiece === name;
-
+      const visible = state.usedPieces.has(name);
       let cls = styles.pieceBtn;
-
       if (active) cls += ` ${styles.pieceBtnActive}`;
-
-      if (used) cls += ` ${styles.pieceBtnUsed}`;
-
-      return `
-        <button class="${cls}" data-piece="${name}" ${used ? 'disabled' : ''}>
-          <span class="${styles.colorSwatch}" style="background:${PIECE_COLORS[name]}"></span>
-          ${name}
-        </button>
-      `;
-    }).join('');
-
+      if (visible) cls += ` ${styles.pieceBtnVisible}`;
+      return `        <button class="${cls}" data-piece="${name}">          <span class="${styles.colorSwatch}" style="background:${PIECE_COLORS[name]}"></span>          ${name}          ${visible ? '<span class="' + styles.visibleIndicator + '">&#x2713;</span>' : ""}        </button>      `;
+    }).join("");
     if (!sceneCtx) {
-      container.innerHTML = `
-        <div class="${styles.container}">
-          <div class="${styles.sidebar}">
-            <p class="${styles.sidebarTitle}">Pieces</p>
-            ${pieceBtns}
-            <div class="${styles.sidebarActions}">
-              <button data-action="reset">Reset All</button>
-              <button data-action="back">Back to Browser</button>
-            </div>
-          </div>
-          <div class="${styles.main}">
-            <div class="${styles.toolbar}">
-              <span class="${styles.clickPrompt}">${getPhasePrompt()}</span>
-              <span class="${styles.orientationInfo}">
-                ${state.selectedPiece ? `a=${state.orientation.a} b=${state.orientation.b} c=${state.orientation.c}` : ''}
-              </span>
-              <span>Rotate: <kbd>A</kbd> yaw <kbd>B</kbd> pitch <kbd>C</kbd> roll — <kbd>Esc</kbd> cancel</span>
-            </div>
-            <div class="${styles.sceneContainer}" data-scene></div>
-            <div class="${styles.statusBar}">
-              <span class="${styles.notation}">${escapeHtml(notationStr)}</span>
-              <button class="${styles.copyBtn}" data-action="copy">Copy</button>
-            </div>
-          </div>
-        </div>
-      `;
-
+      container.innerHTML = `        <div class="${styles.container}">          <div class="${styles.sidebar}">            <p class="${styles.sidebarTitle}">Pieces</p>            <div class="${styles.pieceList}">${pieceBtns}</div>            ${renderFormPanel()}            <div class="${styles.sidebarActions}">              <button data-action="reset">Reset All</button>              <button data-action="home">Home</button>            </div>          </div>          <div class="${styles.main}">            <div class="${styles.sceneContainer}" data-scene></div>            <div class="${styles.statusBar}">              <span class="${styles.notation}">${escapeHtml(notationStr)}</span>              <button class="${styles.copyBtn}" data-action="copy">Copy</button>            </div>          </div>        </div>      `;
       const sceneContainer = container.querySelector(
-        '[data-scene]',
+        "[data-scene]",
       ) as HTMLElement;
-
       sceneCtx = createScene(sceneContainer);
-
       renderGrid(sceneCtx, GRID_SIZE_BUILDER);
-
       setCameraForGrid(sceneCtx, GRID_SIZE_BUILDER);
     } else {
-      // Update sidebar
+      // Update piece buttons
 
-      const sidebar = container.querySelector(`.${styles.sidebar}`);
+      const pieceList = container.querySelector(`.${styles.pieceList}`);
+      if (pieceList) {
+        pieceList.innerHTML = pieceBtns;
+      } // Update form panel
 
-      if (sidebar) {
-        const title = sidebar.querySelector(`.${styles.sidebarTitle}`);
-
-        const actions = sidebar.querySelector(`.${styles.sidebarActions}`);
-
-        if (title && actions) {
-          // Replace piece buttons
-
-          const btns = sidebar.querySelectorAll(`.${styles.pieceBtn}`);
-
-          btns.forEach((b) => b.remove());
-
-          title.insertAdjacentHTML('afterend', pieceBtns);
-        }
+      const oldFormPanel = container.querySelector(`.${styles.formPanel}`);
+      if (oldFormPanel) {
+        oldFormPanel.outerHTML = renderFormPanel();
       }
+    } // Render placed pieces
 
-      // Update toolbar
-
-      const toolbar = container.querySelector(`.${styles.toolbar}`);
-
-      if (toolbar) {
-        toolbar.innerHTML = `
-          <span class="${styles.clickPrompt}">${getPhasePrompt()}</span>
-          <span class="${styles.orientationInfo}">
-            ${state.selectedPiece ? `a=${state.orientation.a} b=${state.orientation.b} c=${state.orientation.c}` : ''}
-          </span>
-          <span>Rotate: <kbd>A</kbd> yaw <kbd>B</kbd> pitch <kbd>C</kbd> roll — <kbd>Esc</kbd> cancel</span>
-        `;
-      }
-
-      // Update notation
-
-      const notationEl = container.querySelector(`.${styles.notation}`);
-
-      if (notationEl) {
-        notationEl.textContent = notationStr;
-      }
-    }
-
-    // Render placed pieces
-
-    renderPlacements(sceneCtx!, state.placements);
-
-    // Render floating piece if one is selected
-
-    if (state.selectedPiece && state.phase !== 'idle') {
-      const previewPos = {
-        x:
-          state.phase === 'selectLayer'
-            ? 4
-            : state.phase === 'selectColumn'
-              ? 4
-              : state.selectedColumn,
-
-        y: state.phase === 'selectLayer' ? 4 : state.selectedLayer,
-
-        z: state.phase === 'selectRow' ? 4 : 0,
-      };
-
-      renderFloatingPiece(
-        sceneCtx!,
-
-        state.selectedPiece,
-
-        state.orientation,
-
-        previewPos,
-      );
-    }
-
+    updateScene();
     bindEvents();
   }
-
   function bindEvents() {
-    container.querySelectorAll('[data-piece]').forEach((btn) => {
-      btn.addEventListener('click', () => {
+    container.querySelectorAll("[data-piece]").forEach((btn) => {
+      btn.addEventListener("click", () => {
         const piece = (btn as HTMLElement).dataset.piece as PieceName;
-
-        selectPiece(piece);
+        state.selectedPiece = piece;
+        renderUI();
       });
     });
-
-    container.querySelectorAll('[data-action]').forEach((btn) => {
-      btn.addEventListener('click', () => {
+    container.querySelectorAll("[data-action]").forEach((btn) => {
+      btn.addEventListener("click", () => {
         const action = (btn as HTMLElement).dataset.action;
-
-        if (action === 'reset') {
+        if (action === "reset") {
           state.placements = [];
-
           state.usedPieces.clear();
-
           state.selectedPiece = null;
-
-          state.phase = 'idle';
-
-          state.orientation = { a: 0, b: 0, c: 0 };
-
           renderUI();
-        } else if (action === 'back') {
+        } else if (action === "home") {
           callbacks.onBack();
-        } else if (action === 'copy') {
-          if (state.placements.length > 0) {
-            navigator.clipboard.writeText(serializeSolution(state.placements));
+        } else if (action === "copy") {
+          const visiblePlacements = state.placements.filter((p) =>
+            state.usedPieces.has(p.piece),
+          );
+          if (visiblePlacements.length > 0) {
+            navigator.clipboard.writeText(serializeSolution(visiblePlacements));
           }
         }
       });
+    }); // Form event handlers
+
+    const visibleCheckbox = container.querySelector(
+      "[data-visible]",
+    ) as HTMLInputElement | null;
+    if (visibleCheckbox && state.selectedPiece) {
+      const piece = state.selectedPiece;
+      visibleCheckbox.addEventListener("change", () => {
+        if (visibleCheckbox.checked) {
+          state.usedPieces.add(piece);
+          getOrCreatePlacement(piece);
+        } else {
+          state.usedPieces.delete(piece);
+          removePlacement(piece);
+        }
+        renderUI();
+      });
+    }
+    container.querySelectorAll("[data-position]").forEach((input) => {
+      const el = input as HTMLInputElement;
+      const axis = el.dataset.position as "x" | "y" | "z";
+      el.addEventListener("input", () => {
+        if (!state.selectedPiece) return;
+        const value = parseInt(el.value, 10);
+        if (isNaN(value)) return;
+        const placement = getOrCreatePlacement(state.selectedPiece);
+        placement.position = { ...placement.position, [axis]: value };
+        if (!state.usedPieces.has(state.selectedPiece)) {
+          state.usedPieces.add(state.selectedPiece); // Update checkbox visually
+
+          const cb = container.querySelector(
+            "[data-visible]",
+          ) as HTMLInputElement | null;
+          if (cb) cb.checked = true;
+        }
+        updateScene();
+      });
     });
-  }
-
-  function selectPiece(piece: PieceName) {
-    if (state.usedPieces.has(piece)) return;
-
-    state.selectedPiece = piece;
-
-    state.orientation = { a: 0, b: 0, c: 0 };
-
-    state.phase = 'selectLayer';
-
-    renderUI();
-  }
-
-  function handleSceneClick() {
-    if (!state.selectedPiece) return;
-
-    switch (state.phase) {
-      case 'selectLayer':
-        // Cycle through layers 0..8
-
-        state.selectedLayer = (state.selectedLayer + 1) % GRID_SIZE_BUILDER;
-
-        state.phase = 'selectColumn';
-
-        renderUI();
-
-        break;
-
-      case 'selectColumn':
-        state.selectedColumn = (state.selectedColumn + 1) % GRID_SIZE_BUILDER;
-
-        state.phase = 'selectRow';
-
-        renderUI();
-
-        break;
-
-      case 'selectRow': {
-        // For now, cycle through rows; in a full implementation we'd use raycasting
-
-        const row = 0; // Will be replaced by actual click-based selection
-
-        const placement: Placement = {
-          piece: state.selectedPiece,
-
-          orientation: { ...state.orientation },
-
-          position: {
-            x: state.selectedColumn,
-
-            y: state.selectedLayer,
-
-            z: row,
-          },
-        };
-
-        if (isPlacementValid(state.placements, placement, GRID_SIZE_BUILDER)) {
-          state.placements.push(placement);
-
+    container.querySelectorAll("[data-rotation]").forEach((select) => {
+      const el = select as HTMLSelectElement;
+      const axis = el.dataset.rotation as "a" | "b" | "c";
+      el.addEventListener("change", () => {
+        if (!state.selectedPiece) return;
+        const value = parseInt(el.value, 10) as RotationStep;
+        const placement = getOrCreatePlacement(state.selectedPiece);
+        placement.orientation = { ...placement.orientation, [axis]: value };
+        if (!state.usedPieces.has(state.selectedPiece)) {
           state.usedPieces.add(state.selectedPiece);
-
-          state.selectedPiece = null;
-
-          state.phase = 'idle';
-
-          // Update URL
-
-          updateUrl();
+          const cb = container.querySelector(
+            "[data-visible]",
+          ) as HTMLInputElement | null;
+          if (cb) cb.checked = true;
         }
-
-        renderUI();
-
-        break;
-      }
-    }
-  }
-
-  function handleKeydown(e: KeyboardEvent) {
-    if (!state.selectedPiece) return;
-
-    switch (e.key.toLowerCase()) {
-      case 'a':
-        state.orientation = {
-          ...state.orientation,
-
-          a: nextRotationStep(state.orientation.a),
-        };
-
-        clearFloatingPieces(sceneCtx!);
-
-        renderUI();
-
-        break;
-
-      case 'b':
-        state.orientation = {
-          ...state.orientation,
-
-          b: nextRotationStep(state.orientation.b),
-        };
-
-        clearFloatingPieces(sceneCtx!);
-
-        renderUI();
-
-        break;
-
-      case 'c':
-        state.orientation = {
-          ...state.orientation,
-
-          c: nextRotationStep(state.orientation.c),
-        };
-
-        clearFloatingPieces(sceneCtx!);
-
-        renderUI();
-
-        break;
-
-      case 'escape':
-        state.selectedPiece = null;
-
-        state.phase = 'idle';
-
-        clearFloatingPieces(sceneCtx!);
-
-        renderUI();
-
-        break;
-    }
-  }
-
-  // Layer/column/row selection via number keys (0-8)
-
-  function handleNumberKey(e: KeyboardEvent) {
-    const num = parseInt(e.key, 10);
-
-    if (isNaN(num) || num < 0 || num > 8) return;
-
-    if (!state.selectedPiece) return;
-
-    switch (state.phase) {
-      case 'selectLayer':
-        state.selectedLayer = num;
-
-        state.phase = 'selectColumn';
-
-        renderUI();
-
-        break;
-
-      case 'selectColumn':
-        state.selectedColumn = num;
-
-        state.phase = 'selectRow';
-
-        renderUI();
-
-        break;
-
-      case 'selectRow': {
-        const placement: Placement = {
-          piece: state.selectedPiece,
-
-          orientation: { ...state.orientation },
-
-          position: {
-            x: state.selectedColumn,
-
-            y: state.selectedLayer,
-
-            z: num,
-          },
-        };
-
-        if (isPlacementValid(state.placements, placement, GRID_SIZE_BUILDER)) {
-          state.placements.push(placement);
-
-          state.usedPieces.add(state.selectedPiece);
-
-          state.selectedPiece = null;
-
-          state.phase = 'idle';
-
-          updateUrl();
-        }
-
-        renderUI();
-
-        break;
-      }
-    }
-  }
-
-  function updateUrl() {
-    if (state.placements.length > 0) {
-      const notation = serializeSolution(state.placements);
-
-      const url = new URL(window.location.href);
-
-      url.pathname = '/build';
-
-      url.searchParams.set('notation', notation);
-
-      window.history.replaceState(null, '', url.toString());
-    }
-  }
-
-  function onKeydown(e: KeyboardEvent) {
-    handleKeydown(e);
-
-    handleNumberKey(e);
-  }
-
-  document.addEventListener('keydown', onKeydown);
-
-  // Initial render
+        updateScene();
+      });
+    });
+  } // Initial render
 
   renderUI();
-
-  // Set up scene click handler
-
-  const sceneEl = container.querySelector('[data-scene]');
-
-  if (sceneEl) {
-    sceneEl.addEventListener('click', handleSceneClick);
-  }
-
   return {
     destroy() {
-      document.removeEventListener('keydown', onKeydown);
-
       sceneCtx?.dispose();
-
       sceneCtx = null;
-
-      container.innerHTML = '';
+      container.innerHTML = "";
     },
   };
 }
-
 function escapeHtml(str: string): string {
   return str
-
-    .replace(/&/g, '&amp;')
-
-    .replace(/</g, '&lt;')
-
-    .replace(/>/g, '&gt;')
-
-    .replace(/"/g, '&quot;');
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }

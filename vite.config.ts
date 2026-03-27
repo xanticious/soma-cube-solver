@@ -11,4 +11,9 @@ export default defineConfig({
   build: {
     target: 'es2022',
   },
+  server: {
+    // SPA fallback: serve index.html for /build  and /visualize routes
+    middlewareMode: false,
+  },
+  appType: 'spa',
 });

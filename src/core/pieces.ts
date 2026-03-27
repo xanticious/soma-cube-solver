@@ -1,4 +1,4 @@
-import type { PieceName, Vec3 } from './types';
+import type { PieceName, Vec3 } from "./types";
 
 /**
  * Piece definitions as cubelet offsets from the anchor (first entry = anchor at 0,0,0).
@@ -136,17 +136,17 @@ export const PIECE_OFFSETS: Record<PieceName, readonly Vec3[]> = {
 /** Piece colors — Lego-inspired child-friendly palette */
 
 export const PIECE_COLORS: Record<PieceName, string> = {
-  V: '#CC0000', // Bright Red
+  V: "#CC0000", // Bright Red
 
-  L: '#FFD700', // Bright Yellow
+  L: "#FFD700", // Bright Yellow
 
-  T: '#0057A8', // Bright Blue
+  T: "#0057A8", // Bright Blue
 
-  Z: '#00A550', // Bright Green
+  Z: "#00A550", // Bright Green
 
-  A: '#FF6E00', // Bright Orange
+  A: "#FF6E00", // Bright Orange
 
-  B: '#9B27AF', // Bright Purple
+  B: "#9B27AF", // Bright Purple
 
-  P: '#E8E8E8', // Light Gray
+  P: "#E8E8E8", // Light Gray
 };

@@ -1,8 +1,8 @@
-import type { Placement } from '../../core/types';
+import type { Placement } from "../../core/types";
 
-import { parseSolution, serializeSolution } from '../../core/notation';
+import { parseSolution, serializeSolution } from "../../core/notation";
 
-import { validatePlacements } from '../../core/validation';
+import { validatePlacements } from "../../core/validation";
 
 import {
   createScene,
@@ -10,9 +10,9 @@ import {
   renderGrid,
   setCameraForGrid,
   type SceneContext,
-} from '../Scene/Scene';
+} from "../Scene/Scene";
 
-import styles from './SolutionViewer.module.css';
+import styles from "./SolutionViewer.module.css";
 
 export interface SolutionViewerCallbacks {
   onBack(): void;
@@ -32,12 +32,12 @@ export function createSolutionViewer(
 
     return {
       destroy() {
-        container.innerHTML = '';
+        container.innerHTML = "";
       },
     };
   }
 
-  let currentStep = placements.length; // Start fully assembled
+  let currentStep = placements.length; // Start fully assembled (show complete build)
 
   let sceneCtx: SceneContext | null = null;
 
@@ -53,7 +53,7 @@ export function createSolutionViewer(
     const totalCells = visible.reduce((sum, p) => {
       // Count cells for each piece (V=3, rest=4)
 
-      return sum + (p.piece === 'V' ? 3 : 4);
+      return sum + (p.piece === "V" ? 3 : 4);
     }, 0);
 
     const isFull = result.valid && result.occupiedCells.size === 27;
@@ -68,7 +68,7 @@ export function createSolutionViewer(
 
     const visibleNotation = serializeSolution(getVisiblePlacements());
 
-    let validationHtml = '';
+    let validationHtml = "";
 
     if (currentStep === placements!.length) {
       if (isFull) {
@@ -82,17 +82,25 @@ export function createSolutionViewer(
         if (result.outOfBounds.length > 0)
           issues.push(`${result.outOfBounds.length} out-of-bounds`);
 
-        validationHtml = `<div class="${styles.validationBanner} ${styles.validationError}">Invalid: ${issues.join(', ')}</div>`;
+        validationHtml = `<div class="${styles.validationBanner} ${styles.validationError}">Invalid: ${issues.join(", ")}</div>`;
       }
     }
 
+    const atFirst = currentStep <= 0;
+
+    const atLast = currentStep >= placements!.length;
+
     const toolbarHtml = `
       <div class="${styles.toolbar}">
-        <button data-action="back">Back</button>
-        <button data-action="prev" ${currentStep <= 0 ? 'disabled' : ''}>Prev</button>
-        <span class="${styles.stepInfo}">${currentStep} / ${placements!.length}</span>
-        <button data-action="next" ${currentStep >= placements!.length ? 'disabled' : ''}>Next</button>
-        <button data-action="reset">Show All</button>
+        <button data-action="home">Home</button>
+        <div class="${styles.toolbarSpacer}"></div>
+        <button data-action="show-complete" class="${atLast ? styles.btnActive : ""}">Show Complete Build</button>
+        <div class="${styles.toolbarSpacer}"></div>
+        <button data-action="first" ${atFirst ? "disabled" : ""}>First Step</button>
+        <button data-action="prev" ${atFirst ? "disabled" : ""}>Previous Step</button>
+        <span class="${styles.stepInfo}">Step ${currentStep} / ${placements!.length}</span>
+        <button data-action="next" ${atLast ? "disabled" : ""}>Next Step</button>
+        <button data-action="last" ${atLast ? "disabled" : ""}>Last Step</button>
       </div>
     `;
 
@@ -116,7 +124,7 @@ export function createSolutionViewer(
       `;
 
       const sceneContainer = container.querySelector(
-        '[data-scene]',
+        "[data-scene]",
       ) as HTMLElement;
 
       sceneCtx = createScene(sceneContainer);
@@ -144,7 +152,7 @@ export function createSolutionViewer(
       if (validationHtml) {
         const newToolbar = wrapper.querySelector(`.${styles.toolbar}`)!;
 
-        newToolbar.insertAdjacentHTML('afterend', validationHtml);
+        newToolbar.insertAdjacentHTML("afterend", validationHtml);
       }
 
       const notationBar = wrapper.querySelector(`.${styles.notationBar}`);
@@ -162,8 +170,8 @@ export function createSolutionViewer(
   }
 
   function bindEvents() {
-    container.querySelectorAll('[data-action]').forEach((el) => {
-      el.addEventListener('click', handleAction);
+    container.querySelectorAll("[data-action]").forEach((el) => {
+      el.addEventListener("click", handleAction);
     });
   }
 
@@ -171,12 +179,12 @@ export function createSolutionViewer(
     const action = (e.currentTarget as HTMLElement).dataset.action;
 
     switch (action) {
-      case 'back':
+      case "back":
         callbacks.onBack();
 
         break;
 
-      case 'prev':
+      case "prev":
         if (currentStep > 0) {
           currentStep--;
 
@@ -185,7 +193,7 @@ export function createSolutionViewer(
 
         break;
 
-      case 'next':
+      case "next":
         if (currentStep < placements!.length) {
           currentStep++;
 
@@ -194,14 +202,14 @@ export function createSolutionViewer(
 
         break;
 
-      case 'reset':
+      case "reset":
         currentStep = placements!.length;
 
         renderUI();
 
         break;
 
-      case 'copy':
+      case "copy":
         navigator.clipboard.writeText(
           currentStep === placements!.length
             ? serializeSolution(placements!)
@@ -220,7 +228,7 @@ export function createSolutionViewer(
 
       sceneCtx = null;
 
-      container.innerHTML = '';
+      container.innerHTML = "";
     },
   };
 }
@@ -228,11 +236,11 @@ export function createSolutionViewer(
 function escapeHtml(str: string): string {
   return str
 
-    .replace(/&/g, '&amp;')
+    .replace(/&/g, "&amp;")
 
-    .replace(/</g, '&lt;')
+    .replace(/</g, "&lt;")
 
-    .replace(/>/g, '&gt;')
+    .replace(/>/g, "&gt;")
 
-    .replace(/"/g, '&quot;');
+    .replace(/"/g, "&quot;");
 }

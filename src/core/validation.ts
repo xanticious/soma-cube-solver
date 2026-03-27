@@ -1,8 +1,8 @@
-import { PIECE_OFFSETS } from './pieces';
+import { PIECE_OFFSETS } from "./pieces";
 
-import { transformOffsets } from './rotations';
+import { transformOffsets } from "./rotations";
 
-import type { Placement, Vec3 } from './types';
+import type { Placement, Vec3 } from "./types";
 
 function vecKey(v: Vec3): string {
   return `${v.x},${v.y},${v.z}`;

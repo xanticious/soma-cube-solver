@@ -1,24 +1,24 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from "vitest";
 
 import {
   solutionCanonicalKey,
   solutionCanonicalKeyUnderRotation,
-} from '@/core/solver';
+} from "@/core/solver";
 
-import type { Placement } from '@/core/types';
+import type { Placement } from "@/core/types";
 
-describe('solver', () => {
+describe("solver", () => {
   // These tests validate key infrastructure; the full solve is tested separately
 
   // because it's computationally expensive.
 
-  describe('solutionCanonicalKey', () => {
-    it('produces a 27-char string for a valid placement set', () => {
+  describe("solutionCanonicalKey", () => {
+    it("produces a 27-char string for a valid placement set", () => {
       // Place V at origin (occupies 3 cells)
 
       const placements: Placement[] = [
         {
-          piece: 'V',
+          piece: "V",
 
           orientation: { a: 0, b: 0, c: 0 },
 
@@ -32,19 +32,19 @@ describe('solver', () => {
 
       // Should have 3 'V's and 24 '.'s
 
-      expect(key.split('').filter((c) => c === 'V')).toHaveLength(3);
+      expect(key.split("").filter((c) => c === "V")).toHaveLength(3);
 
-      expect(key.split('').filter((c) => c === '.')).toHaveLength(24);
+      expect(key.split("").filter((c) => c === ".")).toHaveLength(24);
     });
   });
 
-  describe('solutionCanonicalKeyUnderRotation', () => {
-    it('same logical solution rotated produces same canonical key', () => {
+  describe("solutionCanonicalKeyUnderRotation", () => {
+    it("same logical solution rotated produces same canonical key", () => {
       // Place V at (0,0,0) — occupies (0,0,0), (1,0,0), (0,1,0)
 
       const p1: Placement[] = [
         {
-          piece: 'V',
+          piece: "V",
 
           orientation: { a: 0, b: 0, c: 0 },
 
