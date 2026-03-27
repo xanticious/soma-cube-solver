@@ -1,0 +1,149 @@
+.container {
+  display: flex;
+  height: 100%;
+}
+
+.sidebar {
+  width: 200px;
+  background: #fafafa;
+  border-right: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  gap: 8px;
+  overflow-y: auto;
+}
+
+.sidebarTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 4px 0;
+}
+
+.pieceBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: border-color 0.15s;
+}
+
+.pieceBtn:hover {
+  border-color: #999;
+}
+
+.pieceBtnActive {
+  border-color: #0057a8;
+  background: #e8f0fe;
+}
+
+.pieceBtnUsed {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.colorSwatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  border: 1px solid #ccc;
+}
+
+.sidebarActions {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sidebarActions button {
+  padding: 8px;
+  border: 1px solid #ccc;
+  background: #fff;
+  cursor: pointer;
+  font-size: 13px;
+  border-radius: 4px;
+}
+
+.sidebarActions button:hover {
+  background: #f0f0f0;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: #fff;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 13px;
+}
+
+.toolbar kbd {
+  padding: 2px 6px;
+  background: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.sceneContainer {
+  flex: 1;
+  position: relative;
+  min-height: 400px;
+}
+
+.statusBar {
+  padding: 10px 16px;
+  background: #fafafa;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.notation {
+  flex: 1;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  word-break: break-all;
+  color: #333;
+}
+
+.copyBtn {
+  padding: 4px 10px;
+  border: 1px solid #ccc;
+  background: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  border-radius: 3px;
+}
+
+.copyBtn:hover {
+  background: #f0f0f0;
+}
+
+.clickPrompt {
+  font-weight: 600;
+  color: #0057a8;
+}
+
+.orientationInfo {
+  font-family: monospace;
+  color: #666;
+}
