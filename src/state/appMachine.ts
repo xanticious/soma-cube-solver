@@ -54,6 +54,22 @@ export const appMachine = createMachine({
             currentNotation: () => null,
           }),
         },
+
+        VIEW_SOLUTION: {
+          target: "viewer",
+
+          actions: assign({
+            currentNotation: ({ event }) => event.notation,
+          }),
+        },
+
+        OPEN_BUILDER: {
+          target: "builder",
+
+          actions: assign({
+            currentNotation: ({ event }) => event.notation,
+          }),
+        },
       },
     },
 
@@ -64,6 +80,22 @@ export const appMachine = createMachine({
 
           actions: assign({
             currentNotation: () => null,
+          }),
+        },
+
+        VIEW_SOLUTION: {
+          target: "viewer",
+
+          actions: assign({
+            currentNotation: ({ event }) => event.notation,
+          }),
+        },
+
+        OPEN_BUILDER: {
+          target: "builder",
+
+          actions: assign({
+            currentNotation: ({ event }) => event.notation,
           }),
         },
       },
