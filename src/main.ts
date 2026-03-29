@@ -23,7 +23,7 @@ function destroyCurrent() {
 }
 
 /**
- * Parse hash-based notation: #notation=...
+ * Parse hash-based notation: #notation=...&stagingAreaNotation=...
  */
 function getHashNotation(): string | null {
   const hash = window.location.hash;
@@ -35,7 +35,21 @@ function getHashNotation(): string | null {
   return params.get('notation');
 }
 
-function renderView(state: string, notation: string | null) {
+function getHashStagingNotation(): string | null {
+  const hash = window.location.hash;
+
+  if (!hash || hash.length < 2) return null;
+
+  const params = new URLSearchParams(hash.substring(1));
+
+  return params.get('stagingAreaNotation');
+}
+
+function renderView(
+  state: string,
+  notation: string | null,
+  stagingAreaNotation?: string | null,
+) {
   destroyCurrent();
 
   switch (state) {
@@ -68,11 +82,16 @@ function renderView(state: string, notation: string | null) {
       break;
 
     case 'builder':
-      currentView = createBuilderView(app, notation, {
-        onBack() {
-          actor.send({ type: 'BACK_TO_BROWSER' });
+      currentView = createBuilderView(
+        app,
+        notation,
+        stagingAreaNotation ?? null,
+        {
+          onBack() {
+            actor.send({ type: 'BACK_TO_BROWSER' });
+          },
         },
-      });
+      );
 
       updateUrl('/build', notation);
 
@@ -83,7 +102,7 @@ function renderView(state: string, notation: string | null) {
 function updateUrl(path: string, notation: string | null) {
   const hash = notation ? `#notation=${notation}` : '';
 
-  const url = `${hash}`;
+  const url = `${path}${hash}`;
 
   window.history.pushState(null, '', url);
 }
@@ -95,8 +114,14 @@ window.addEventListener('popstate', () => {
 
   const notation = getHashNotation();
 
+  const stagingNotation = getHashStagingNotation();
+
   if (pathname === '/build') {
-    actor.send({ type: 'OPEN_BUILDER', notation });
+    actor.send({
+      type: 'OPEN_BUILDER',
+      notation,
+      stagingAreaNotation: stagingNotation,
+    });
   } else if (pathname === '/visualize' && notation) {
     actor.send({ type: 'VIEW_SOLUTION', notation });
   } else if (notation) {
@@ -115,8 +140,14 @@ const initPathname = window.location.pathname;
 
 const initNotation = getHashNotation();
 
+const initStagingNotation = getHashStagingNotation();
+
 if (initPathname === '/build') {
-  actor.send({ type: 'OPEN_BUILDER', notation: initNotation });
+  actor.send({
+    type: 'OPEN_BUILDER',
+    notation: initNotation,
+    stagingAreaNotation: initStagingNotation,
+  });
 } else if (initPathname === '/visualize' && initNotation) {
   actor.send({ type: 'VIEW_SOLUTION', notation: initNotation });
 } else if (initNotation) {
@@ -129,7 +160,9 @@ actor.subscribe((snapshot) => {
 
   const notation = snapshot.context.currentNotation;
 
-  renderView(stateValue, notation);
+  const stagingNotation = snapshot.context.stagingAreaNotation;
+
+  renderView(stateValue, notation, stagingNotation);
 });
 
 // Manually render the current state (the subscribe above won't
@@ -137,4 +170,5 @@ actor.subscribe((snapshot) => {
 renderView(
   actor.getSnapshot().value as string,
   actor.getSnapshot().context.currentNotation,
+  actor.getSnapshot().context.stagingAreaNotation,
 );

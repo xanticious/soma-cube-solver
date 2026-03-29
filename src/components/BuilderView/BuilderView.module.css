@@ -4,7 +4,7 @@
 }
 
 .sidebar {
-  width: 260px;
+  width: 340px;
   background: #fafafa;
   border-right: 1px solid #e0e0e0;
   display: flex;
@@ -114,19 +114,24 @@
   margin-bottom: 6px;
 }
 
-.formCheckboxField {
-  margin-bottom: 10px;
+.radioGroup {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
-.formCheckboxField input[type='checkbox'] {
-  width: 16px;
-  height: 16px;
+.radioLabel {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 12px;
   cursor: pointer;
+  white-space: nowrap;
 }
 
-.formCheckboxField span {
-  font-size: 13px;
-  font-weight: 600;
+.radioLabel input[type='radio'] {
+  margin: 0;
+  cursor: pointer;
 }
 
 .formLabel {
@@ -134,36 +139,6 @@
   font-weight: 600;
   color: #555;
   min-width: 24px;
-}
-
-.formInput {
-  width: 60px;
-  padding: 4px 6px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 13px;
-  font-family: monospace;
-}
-
-.formInput:focus {
-  outline: none;
-  border-color: #0057a8;
-  box-shadow: 0 0 0 2px rgba(0, 87, 168, 0.15);
-}
-
-.formSelect {
-  padding: 4px 6px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 13px;
-  background: #fff;
-  cursor: pointer;
-}
-
-.formSelect:focus {
-  outline: none;
-  border-color: #0057a8;
-  box-shadow: 0 0 0 2px rgba(0, 87, 168, 0.15);
 }
 
 .sidebarActions {

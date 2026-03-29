@@ -1,18 +1,18 @@
-import * as THREE from "three";
+import * as THREE from 'three';
 
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-import type { Placement, PieceName, Vec3 } from "../../core/types";
+import type { Placement, PieceName, Vec3 } from '../../core/types';
 
-import { PIECE_OFFSETS, PIECE_COLORS } from "../../core/pieces";
+import { PIECE_OFFSETS, PIECE_COLORS } from '../../core/pieces';
 
-import { transformOffsets } from "../../core/rotations";
+import { transformOffsets } from '../../core/rotations';
 
 const CUBELET_SIZE = 1;
 
 const CUBELET_GAP = 0.04;
 
-const EDGE_COLOR = "#333333";
+const EDGE_COLOR = '#333333';
 
 export interface SceneContext {
   renderer: THREE.WebGLRenderer;
@@ -26,6 +26,8 @@ export interface SceneContext {
   cubeGroup: THREE.Group;
 
   gridHelper: THREE.Group;
+
+  labelsGroup: THREE.Group;
 
   animationId: number;
 
@@ -89,6 +91,10 @@ export function createScene(container: HTMLElement): SceneContext {
 
   scene.add(gridHelper);
 
+  const labelsGroup = new THREE.Group();
+
+  scene.add(labelsGroup);
+
   let animationId = 0;
 
   function animate() {
@@ -141,6 +147,8 @@ export function createScene(container: HTMLElement): SceneContext {
     cubeGroup,
 
     gridHelper,
+
+    labelsGroup,
 
     animationId,
 
@@ -240,7 +248,7 @@ export function renderFloatingPiece(
 
   piece: PieceName,
 
-  orientation: import("../../core/types").Orientation,
+  orientation: import('../../core/types').Orientation,
 
   position: Vec3,
 ): void {
@@ -251,7 +259,7 @@ export function renderFloatingPiece(
   for (let i = 0; i < cells.length; i++) {
     const cell = cells[i]!;
 
-    const color = i === 0 ? "#CC0000" : "#3399FF";
+    const color = i === 0 ? '#CC0000' : '#3399FF';
 
     const cubelet = createCubelet(cell, color, 0.7);
 
@@ -379,4 +387,158 @@ export function setCameraForGrid(ctx: SceneContext, gridSize: number): void {
   );
 
   ctx.controls.update();
+}
+
+/**
+ * Draw two wireframe grids side-by-side (solution + staging) for builder mode.
+ */
+export function renderDualGrids(
+  ctx: SceneContext,
+  gridSize: number,
+  gapX: number,
+): void {
+  while (ctx.gridHelper.children.length > 0) {
+    ctx.gridHelper.remove(ctx.gridHelper.children[0]!);
+  }
+
+  addGridLines(ctx, gridSize, { x: 0, y: 0, z: 0 });
+  addGridLines(ctx, gridSize, { x: gridSize + gapX, y: 0, z: 0 });
+}
+
+function addGridLines(ctx: SceneContext, gridSize: number, offset: Vec3): void {
+  const material = new THREE.LineBasicMaterial({
+    color: 0xcccccc,
+    transparent: true,
+    opacity: 0.4,
+  });
+
+  for (let layer = 0; layer <= gridSize; layer++) {
+    for (let i = 0; i <= gridSize; i++) {
+      const points = [
+        new THREE.Vector3(
+          offset.x - 0.5,
+          offset.y + layer - 0.5,
+          offset.z + i - 0.5,
+        ),
+        new THREE.Vector3(
+          offset.x + gridSize - 0.5,
+          offset.y + layer - 0.5,
+          offset.z + i - 0.5,
+        ),
+      ];
+      const geometry = new THREE.BufferGeometry().setFromPoints(points);
+      ctx.gridHelper.add(new THREE.Line(geometry, material));
+    }
+
+    for (let i = 0; i <= gridSize; i++) {
+      const points = [
+        new THREE.Vector3(
+          offset.x + i - 0.5,
+          offset.y + layer - 0.5,
+          offset.z - 0.5,
+        ),
+        new THREE.Vector3(
+          offset.x + i - 0.5,
+          offset.y + layer - 0.5,
+          offset.z + gridSize - 0.5,
+        ),
+      ];
+      const geometry = new THREE.BufferGeometry().setFromPoints(points);
+      ctx.gridHelper.add(new THREE.Line(geometry, material));
+    }
+  }
+
+  for (let i = 0; i <= gridSize; i++) {
+    for (let j = 0; j <= gridSize; j++) {
+      const points = [
+        new THREE.Vector3(
+          offset.x + i - 0.5,
+          offset.y - 0.5,
+          offset.z + j - 0.5,
+        ),
+        new THREE.Vector3(
+          offset.x + i - 0.5,
+          offset.y + gridSize - 0.5,
+          offset.z + j - 0.5,
+        ),
+      ];
+      const geometry = new THREE.BufferGeometry().setFromPoints(points);
+      ctx.gridHelper.add(new THREE.Line(geometry, material));
+    }
+  }
+}
+
+/**
+ * Reposition camera and orbit target to see both builder grids.
+ */
+export function setCameraForDualGrids(
+  ctx: SceneContext,
+  gridSize: number,
+  gapX: number,
+): void {
+  const totalWidth = gridSize * 2 + gapX;
+  const centerX = (totalWidth - 1) / 2;
+  const centerYZ = (gridSize - 1) / 2;
+
+  ctx.controls.target.set(centerX, centerYZ, centerYZ);
+  ctx.camera.position.set(
+    centerX + totalWidth * 0.9,
+    centerYZ + totalWidth * 0.7,
+    centerYZ + totalWidth * 0.9,
+  );
+  ctx.controls.update();
+}
+
+/**
+ * Create a billboard text sprite using a Canvas texture.
+ * Sprites always face the camera automatically in Three.js.
+ */
+function createTextSprite(text: string): THREE.Sprite {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 64;
+  const ctx2d = canvas.getContext('2d')!;
+
+  ctx2d.fillStyle = 'rgba(20, 20, 20, 0.60)';
+  ctx2d.beginPath();
+  ctx2d.roundRect(4, 4, canvas.width - 8, canvas.height - 8, 10);
+  ctx2d.fill();
+
+  ctx2d.font = 'bold 26px sans-serif';
+  ctx2d.fillStyle = '#ffffff';
+  ctx2d.textAlign = 'center';
+  ctx2d.textBaseline = 'middle';
+  ctx2d.fillText(text, canvas.width / 2, canvas.height / 2);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
+  const sprite = new THREE.Sprite(material);
+  // Scale so the sprite is ~2.5 world units wide and ~0.625 tall
+  sprite.scale.set(2.5, 0.625, 1);
+  return sprite;
+}
+
+/**
+ * Place "Solution Area" and "Staging Area" billboard labels above each grid.
+ * Replaces any previously added labels.
+ */
+export function renderDualGridLabels(
+  ctx: SceneContext,
+  gridSize: number,
+  gapX: number,
+): void {
+  while (ctx.labelsGroup.children.length > 0) {
+    ctx.labelsGroup.remove(ctx.labelsGroup.children[0]!);
+  }
+
+  const centerZ = (gridSize - 1) / 2;
+  const labelY = gridSize + 1;
+
+  const solutionLabel = createTextSprite('Solution Area');
+  solutionLabel.position.set((gridSize - 1) / 2, labelY, centerZ);
+  ctx.labelsGroup.add(solutionLabel);
+
+  const stagingLabel = createTextSprite('Staging Area');
+  stagingLabel.position.set(gridSize + gapX + (gridSize - 1) / 2, labelY, centerZ);
+  ctx.labelsGroup.add(stagingLabel);
 }

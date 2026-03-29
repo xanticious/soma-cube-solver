@@ -1,16 +1,16 @@
-import { PIECE_OFFSETS } from "./pieces";
+import { PIECE_OFFSETS } from './pieces';
 
 import {
   distinctPieceOrientations,
   normalizePositions,
   transformOffsets,
-} from "./rotations";
+} from './rotations';
 
-import type { Orientation, Placement, PieceName, Vec3 } from "./types";
+import type { Orientation, Placement, PieceName, Vec3 } from './types';
 
-import { PIECE_NAMES } from "./types";
+import { PIECE_NAMES } from './types';
 
-interface PieceVariant {
+export interface PieceVariant {
   piece: PieceName;
 
   orientation: Orientation;
@@ -24,7 +24,7 @@ interface PieceVariant {
  * Pre-compute all distinct oriented variants of each piece.
  */
 
-function computeAllVariants(): PieceVariant[] {
+export function computeAllVariants(): PieceVariant[] {
   const variants: PieceVariant[] = [];
 
   for (const piece of PIECE_NAMES) {
@@ -52,7 +52,7 @@ function computeAllVariants(): PieceVariant[] {
  * Group variants by piece name.
  */
 
-function groupVariantsByPiece(
+export function groupVariantsByPiece(
   variants: PieceVariant[],
 ): Map<PieceName, PieceVariant[]> {
   const map = new Map<PieceName, PieceVariant[]>();
@@ -73,6 +73,53 @@ function groupVariantsByPiece(
  * Returns all solutions as arrays of Placements.
  */
 
+export function gridIndex(x: number, y: number, z: number): number {
+  return x * 9 + y * 3 + z;
+}
+
+/**
+ * Try to place the piece variant at position (px, py, pz).
+ * Returns the list of grid indices occupied, or null if invalid.
+ */
+
+export function tryPlace(
+  offsets: Vec3[],
+  px: number,
+  py: number,
+  pz: number,
+  grid: Uint8Array,
+  gridSize: number,
+): number[] | null {
+  const indices: number[] = [];
+
+  for (const o of offsets) {
+    const x = o.x + px;
+
+    const y = o.y + py;
+
+    const z = o.z + pz;
+
+    if (
+      x < 0 ||
+      x >= gridSize ||
+      y < 0 ||
+      y >= gridSize ||
+      z < 0 ||
+      z >= gridSize
+    ) {
+      return null;
+    }
+
+    const idx = gridIndex(x, y, z);
+
+    if (grid[idx]) return null;
+
+    indices.push(idx);
+  }
+
+  return indices;
+}
+
 export function solveAll(): Placement[][] {
   const allVariants = computeAllVariants();
 
@@ -87,54 +134,6 @@ export function solveAll(): Placement[][] {
   const grid = new Uint8Array(27); // 0 = empty
 
   const currentPlacements: Placement[] = [];
-
-  function gridIndex(x: number, y: number, z: number): number {
-    return x * 9 + y * 3 + z;
-  }
-
-  /**
-   * Try to place the piece variant at position (px, py, pz).
-   * Returns the list of grid indices occupied, or null if invalid.
-   */
-
-  function tryPlace(
-    offsets: Vec3[],
-
-    px: number,
-
-    py: number,
-
-    pz: number,
-  ): number[] | null {
-    const indices: number[] = [];
-
-    for (const o of offsets) {
-      const x = o.x + px;
-
-      const y = o.y + py;
-
-      const z = o.z + pz;
-
-      if (
-        x < 0 ||
-        x >= gridSize ||
-        y < 0 ||
-        y >= gridSize ||
-        z < 0 ||
-        z >= gridSize
-      ) {
-        return null;
-      }
-
-      const idx = gridIndex(x, y, z);
-
-      if (grid[idx]) return null;
-
-      indices.push(idx);
-    }
-
-    return indices;
-  }
 
   function solve(pieceIndex: number): void {
     if (pieceIndex === PIECE_NAMES.length) {
@@ -151,7 +150,14 @@ export function solveAll(): Placement[][] {
       for (let px = 0; px < gridSize; px++) {
         for (let py = 0; py < gridSize; py++) {
           for (let pz = 0; pz < gridSize; pz++) {
-            const indices = tryPlace(variant.offsets, px, py, pz);
+            const indices = tryPlace(
+              variant.offsets,
+              px,
+              py,
+              pz,
+              grid,
+              gridSize,
+            );
 
             if (!indices) continue;
 
@@ -196,7 +202,7 @@ export function solveAll(): Placement[][] {
  */
 
 export function solutionCanonicalKey(placements: Placement[]): string {
-  const grid = Array.from<string>({ length: 27 }).fill(".");
+  const grid = Array.from<string>({ length: 27 }).fill('.');
 
   for (const p of placements) {
     const offsets = PIECE_OFFSETS[p.piece];
@@ -210,7 +216,7 @@ export function solutionCanonicalKey(placements: Placement[]): string {
     }
   }
 
-  return grid.join("");
+  return grid.join('');
 }
 
 /**
@@ -315,7 +321,7 @@ export function solutionCanonicalKeyUnderRotation(
 
   const gridSize = 3;
 
-  const grid = Array.from<string>({ length: 27 }).fill(".");
+  const grid = Array.from<string>({ length: 27 }).fill('.');
 
   for (const p of placements) {
     const offsets = PIECE_OFFSETS[p.piece];
@@ -329,10 +335,10 @@ export function solutionCanonicalKeyUnderRotation(
 
   const rotations = cubeRotations();
 
-  let minKey = grid.join("");
+  let minKey = grid.join('');
 
   for (const rot of rotations) {
-    const rotatedGrid = Array.from<string>({ length: 27 }).fill(".");
+    const rotatedGrid = Array.from<string>({ length: 27 }).fill('.');
 
     for (let x = 0; x < gridSize; x++) {
       for (let y = 0; y < gridSize; y++) {
@@ -346,7 +352,7 @@ export function solutionCanonicalKeyUnderRotation(
       }
     }
 
-    const key = rotatedGrid.join("");
+    const key = rotatedGrid.join('');
 
     if (key < minKey) {
       minKey = key;
