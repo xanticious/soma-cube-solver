@@ -89,7 +89,7 @@ export function createSolutionViewer(
         <span class="${styles.distinctBadge}">One of 240 Distinct Solutions</span>
       </div>`;
     }
-    const url = `/visualize#notation=${entry.canonical}`;
+    const url = `#view=visualize&notation=${entry.canonical}`;
     return `<div class="${styles.canonicalInfo}">
       <p class="${styles.canonicalLabel}">Rotation / reflection of:</p>
       <a class="${styles.canonicalLink}" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">#${canonicalIndex}&nbsp;${escapeHtml(entry.canonical)}</a>
