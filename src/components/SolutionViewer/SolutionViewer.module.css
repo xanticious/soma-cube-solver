@@ -1,56 +1,110 @@
 .container {
   display: flex;
-  flex-direction: column;
   height: 100%;
 }
 
-.toolbar {
+.sidebar {
+  width: 220px;
+  background: #fafafa;
+  border-right: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  gap: 8px;
+  overflow-y: auto;
+}
+
+.bulkActions {
+  display: flex;
+  gap: 6px;
+}
+
+.bulkActions button {
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  background: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  border-radius: 4px;
+}
+
+.bulkActions button:hover {
+  background: #f0f0f0;
+}
+
+.pieceList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pieceRow {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 16px;
+  padding: 6px 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
   background: #fff;
-  border-bottom: 1px solid #e0e0e0;
-  flex-wrap: wrap;
+  transition: opacity 0.15s;
 }
 
-.toolbar button {
-  padding: 6px 14px;
+.pieceRowHidden {
+  opacity: 0.4;
+}
+
+.colorSwatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  border: 1px solid #ccc;
+  flex-shrink: 0;
+}
+
+.pieceName {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  flex: 1;
+}
+
+.toggleBtn {
+  padding: 3px 10px;
+  border: 1px solid #ccc;
+  background: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.toggleBtn:hover {
+  background: #f0f0f0;
+}
+
+.sidebarFooter {
+  margin-top: auto;
+}
+
+.sidebarFooter button {
+  width: 100%;
+  padding: 8px;
   border: 1px solid #ccc;
   background: #fff;
   cursor: pointer;
   font-size: 13px;
   border-radius: 4px;
-  white-space: nowrap;
 }
 
-.toolbar button:hover {
+.sidebarFooter button:hover {
   background: #f0f0f0;
 }
 
-.toolbar button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.btnActive {
-  background: #0057a8 !important;
-  color: #fff;
-  border-color: #0057a8 !important;
-}
-
-.toolbarSpacer {
-  width: 1px;
-  height: 24px;
-  background: #e0e0e0;
-}
-
-.stepInfo {
-  font-size: 14px;
-  font-weight: 600;
-  color: #333;
-  min-width: 60px;
-  text-align: center;
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .sceneContainer {
@@ -87,20 +141,4 @@
 
 .copyBtn:hover {
   background: #f0f0f0;
-}
-
-.validationBanner {
-  padding: 8px 16px;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.validationOk {
-  background: #e8f5e9;
-  color: #2e7d32;
-}
-
-.validationError {
-  background: #fce4ec;
-  color: #c62828;
 }

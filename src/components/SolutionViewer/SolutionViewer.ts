@@ -1,18 +1,15 @@
-import type { Placement } from "../../core/types";
-
-import { parseSolution, serializeSolution } from "../../core/notation";
-
-import { validatePlacements } from "../../core/validation";
-
+import type { PieceName, Placement } from '../../core/types';
+import { PIECE_NAMES } from '../../core/types';
+import { PIECE_COLORS } from '../../core/pieces';
+import { parseSolution, serializeSolution } from '../../core/notation';
 import {
   createScene,
   renderPlacements,
   renderGrid,
   setCameraForGrid,
   type SceneContext,
-} from "../Scene/Scene";
-
-import styles from "./SolutionViewer.module.css";
+} from '../Scene/Scene';
+import styles from './SolutionViewer.module.css';
 
 export interface SolutionViewerCallbacks {
   onBack(): void;
@@ -20,227 +17,140 @@ export interface SolutionViewerCallbacks {
 
 export function createSolutionViewer(
   container: HTMLElement,
-
   notation: string,
-
   callbacks: SolutionViewerCallbacks,
 ): { destroy(): void } {
   const placements = parseSolution(notation);
 
   if (!placements || placements.length === 0) {
     container.innerHTML = `<div style="padding:40px;text-align:center;color:#c62828;">Invalid notation string.</div>`;
-
     return {
       destroy() {
-        container.innerHTML = "";
+        container.innerHTML = '';
       },
     };
   }
 
-  let currentStep = placements.length; // Start fully assembled (show complete build)
+  const placementMap = new Map<PieceName, Placement>();
+  for (const p of placements) {
+    placementMap.set(p.piece, p);
+  }
+
+  // Only pieces present in this solution, in canonical order
+  const solutionPieces: PieceName[] = PIECE_NAMES.filter((n) =>
+    placementMap.has(n),
+  );
+
+  // All pieces visible by default
+  const hiddenPieces = new Set<PieceName>();
 
   let sceneCtx: SceneContext | null = null;
 
+  const fullNotation = serializeSolution(placements);
+
   function getVisiblePlacements(): Placement[] {
-    return placements!.slice(0, currentStep);
+    return solutionPieces
+      .filter((n) => !hiddenPieces.has(n))
+      .map((n) => placementMap.get(n)!);
   }
 
-  function getValidation() {
-    const visible = getVisiblePlacements();
-
-    const result = validatePlacements(visible, 3);
-
-    const totalCells = visible.reduce((sum, p) => {
-      // Count cells for each piece (V=3, rest=4)
-
-      return sum + (p.piece === "V" ? 3 : 4);
-    }, 0);
-
-    const isFull = result.valid && result.occupiedCells.size === 27;
-
-    return { result, isFull, totalCells };
+  function pieceListHtml(): string {
+    return solutionPieces
+      .map((name) => {
+        const hidden = hiddenPieces.has(name);
+        return `<div class="${styles.pieceRow}${hidden ? ` ${styles.pieceRowHidden}` : ''}">
+          <span class="${styles.colorSwatch}" style="background:${PIECE_COLORS[name]}"></span>
+          <span class="${styles.pieceName}">${name}</span>
+          <button class="${styles.toggleBtn}" data-toggle="${name}">${hidden ? 'Show' : 'Hide'}</button>
+        </div>`;
+      })
+      .join('');
   }
 
-  function renderUI() {
-    const { result, isFull } = getValidation();
+  function updatePieceList() {
+    const el = container.querySelector('[data-piece-list]');
+    if (el) el.innerHTML = pieceListHtml();
+  }
 
-    const fullNotation = serializeSolution(placements!);
+  function handleClick(e: MouseEvent) {
+    const btn = (e.target as HTMLElement).closest(
+      '[data-action],[data-toggle]',
+    ) as HTMLElement | null;
+    if (!btn) return;
 
-    const visibleNotation = serializeSolution(getVisiblePlacements());
-
-    let validationHtml = "";
-
-    if (currentStep === placements!.length) {
-      if (isFull) {
-        validationHtml = `<div class="${styles.validationBanner} ${styles.validationOk}">Valid solution — cube is complete</div>`;
-      } else if (!result.valid) {
-        const issues: string[] = [];
-
-        if (result.overlaps.length > 0)
-          issues.push(`${result.overlaps.length} overlap(s)`);
-
-        if (result.outOfBounds.length > 0)
-          issues.push(`${result.outOfBounds.length} out-of-bounds`);
-
-        validationHtml = `<div class="${styles.validationBanner} ${styles.validationError}">Invalid: ${issues.join(", ")}</div>`;
-      }
+    const toggle = btn.dataset.toggle as PieceName | undefined;
+    if (toggle) {
+      if (hiddenPieces.has(toggle)) hiddenPieces.delete(toggle);
+      else hiddenPieces.add(toggle);
+      updatePieceList();
+      renderPlacements(sceneCtx!, getVisiblePlacements());
+      return;
     }
 
-    const atFirst = currentStep <= 0;
-
-    const atLast = currentStep >= placements!.length;
-
-    const toolbarHtml = `
-      <div class="${styles.toolbar}">
-        <button data-action="home">Home</button>
-        <div class="${styles.toolbarSpacer}"></div>
-        <button data-action="show-complete" class="${atLast ? styles.btnActive : ""}">Show Complete Build</button>
-        <div class="${styles.toolbarSpacer}"></div>
-        <button data-action="first" ${atFirst ? "disabled" : ""}>First Step</button>
-        <button data-action="prev" ${atFirst ? "disabled" : ""}>Previous Step</button>
-        <span class="${styles.stepInfo}">Step ${currentStep} / ${placements!.length}</span>
-        <button data-action="next" ${atLast ? "disabled" : ""}>Next Step</button>
-        <button data-action="last" ${atLast ? "disabled" : ""}>Last Step</button>
-      </div>
-    `;
-
-    const notationHtml = `
-      <div class="${styles.notationBar}">
-        <span class="${styles.notationText}">${escapeHtml(currentStep === placements!.length ? fullNotation : visibleNotation)}</span>
-        <button class="${styles.copyBtn}" data-action="copy">Copy</button>
-      </div>
-    `;
-
-    // Only rebuild DOM structure if scene doesn't exist yet
-
-    if (!sceneCtx) {
-      container.innerHTML = `
-        <div class="${styles.container}">
-          ${toolbarHtml}
-          ${validationHtml}
-          <div class="${styles.sceneContainer}" data-scene></div>
-          ${notationHtml}
-        </div>
-      `;
-
-      const sceneContainer = container.querySelector(
-        "[data-scene]",
-      ) as HTMLElement;
-
-      sceneCtx = createScene(sceneContainer);
-
-      renderGrid(sceneCtx, 3);
-
-      setCameraForGrid(sceneCtx, 3);
-    } else {
-      // Update toolbar and notation without rebuilding scene
-
-      const wrapper = container.querySelector(`.${styles.container}`)!;
-
-      const toolbar = wrapper.querySelector(`.${styles.toolbar}`);
-
-      if (toolbar) toolbar.outerHTML = toolbarHtml;
-
-      // Remove old validation banner
-
-      const oldBanner = wrapper.querySelector(`.${styles.validationBanner}`);
-
-      if (oldBanner) oldBanner.remove();
-
-      // Insert new validation banner after toolbar
-
-      if (validationHtml) {
-        const newToolbar = wrapper.querySelector(`.${styles.toolbar}`)!;
-
-        newToolbar.insertAdjacentHTML("afterend", validationHtml);
-      }
-
-      const notationBar = wrapper.querySelector(`.${styles.notationBar}`);
-
-      if (notationBar) notationBar.outerHTML = notationHtml;
-    }
-
-    // Render cubelets
-
-    renderPlacements(sceneCtx!, getVisiblePlacements());
-
-    // Bind events
-
-    bindEvents();
-  }
-
-  function bindEvents() {
-    container.querySelectorAll("[data-action]").forEach((el) => {
-      el.addEventListener("click", handleAction);
-    });
-  }
-
-  function handleAction(e: Event) {
-    const action = (e.currentTarget as HTMLElement).dataset.action;
-
-    switch (action) {
-      case "back":
+    switch (btn.dataset.action) {
+      case 'home':
         callbacks.onBack();
-
         break;
-
-      case "prev":
-        if (currentStep > 0) {
-          currentStep--;
-
-          renderUI();
-        }
-
+      case 'show-all':
+        hiddenPieces.clear();
+        updatePieceList();
+        renderPlacements(sceneCtx!, getVisiblePlacements());
         break;
-
-      case "next":
-        if (currentStep < placements!.length) {
-          currentStep++;
-
-          renderUI();
-        }
-
+      case 'hide-all':
+        for (const n of solutionPieces) hiddenPieces.add(n);
+        updatePieceList();
+        renderPlacements(sceneCtx!, getVisiblePlacements());
         break;
-
-      case "reset":
-        currentStep = placements!.length;
-
-        renderUI();
-
-        break;
-
-      case "copy":
-        navigator.clipboard.writeText(
-          currentStep === placements!.length
-            ? serializeSolution(placements!)
-            : serializeSolution(getVisiblePlacements()),
-        );
-
+      case 'copy':
+        navigator.clipboard.writeText(fullNotation);
         break;
     }
   }
 
-  renderUI();
+  container.addEventListener('click', handleClick);
+
+  // Initial render
+  container.innerHTML = `
+    <div class="${styles.container}">
+      <div class="${styles.sidebar}">
+        <div class="${styles.bulkActions}">
+          <button data-action="show-all">Show All</button>
+          <button data-action="hide-all">Hide All</button>
+        </div>
+        <div class="${styles.pieceList}" data-piece-list>${pieceListHtml()}</div>
+        <div class="${styles.sidebarFooter}">
+          <button data-action="home">Home</button>
+        </div>
+      </div>
+      <div class="${styles.main}">
+        <div class="${styles.sceneContainer}" data-scene></div>
+        <div class="${styles.notationBar}">
+          <span class="${styles.notationText}">${escapeHtml(fullNotation)}</span>
+          <button class="${styles.copyBtn}" data-action="copy">Copy</button>
+        </div>
+      </div>
+    </div>`;
+
+  const sceneContainer = container.querySelector('[data-scene]') as HTMLElement;
+  sceneCtx = createScene(sceneContainer);
+  renderGrid(sceneCtx, 3);
+  setCameraForGrid(sceneCtx, 3);
+  renderPlacements(sceneCtx, getVisiblePlacements());
 
   return {
     destroy() {
+      container.removeEventListener('click', handleClick);
       sceneCtx?.dispose();
-
       sceneCtx = null;
-
-      container.innerHTML = "";
+      container.innerHTML = '';
     },
   };
 }
 
 function escapeHtml(str: string): string {
   return str
-
-    .replace(/&/g, "&amp;")
-
-    .replace(/</g, "&lt;")
-
-    .replace(/>/g, "&gt;")
-
-    .replace(/"/g, "&quot;");
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }

@@ -482,9 +482,9 @@ export function setCameraForDualGrids(
 
   ctx.controls.target.set(centerX, centerYZ, centerYZ);
   ctx.camera.position.set(
-    centerX + totalWidth * 0.9,
-    centerYZ + totalWidth * 0.7,
-    centerYZ + totalWidth * 0.9,
+    centerX,
+    centerYZ + totalWidth * 0.4,
+    centerYZ - totalWidth * 1.2,
   );
   ctx.controls.update();
 }
@@ -511,7 +511,10 @@ function createTextSprite(text: string): THREE.Sprite {
   ctx2d.fillText(text, canvas.width / 2, canvas.height / 2);
 
   const texture = new THREE.CanvasTexture(canvas);
-  const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
+  const material = new THREE.SpriteMaterial({
+    map: texture,
+    transparent: true,
+  });
   const sprite = new THREE.Sprite(material);
   // Scale so the sprite is ~2.5 world units wide and ~0.625 tall
   sprite.scale.set(2.5, 0.625, 1);
@@ -539,6 +542,10 @@ export function renderDualGridLabels(
   ctx.labelsGroup.add(solutionLabel);
 
   const stagingLabel = createTextSprite('Staging Area');
-  stagingLabel.position.set(gridSize + gapX + (gridSize - 1) / 2, labelY, centerZ);
+  stagingLabel.position.set(
+    gridSize + gapX + (gridSize - 1) / 2,
+    labelY,
+    centerZ,
+  );
   ctx.labelsGroup.add(stagingLabel);
 }
