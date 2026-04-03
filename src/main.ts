@@ -1,16 +1,16 @@
-import { createActor } from "xstate";
+import { createActor } from 'xstate';
 
-import { appMachine } from "./state/appMachine";
+import { appMachine } from './state/appMachine';
 
-import { createSolutionBrowser } from "./components/SolutionBrowser/SolutionBrowser";
+import { createSolutionBrowser } from './components/SolutionBrowser/SolutionBrowser';
 
-import { createSolutionViewer } from "./components/SolutionViewer/SolutionViewer";
+import { createSolutionViewer } from './components/SolutionViewer/SolutionViewer';
 
-import { createBuilderView } from "./components/BuilderView/BuilderView";
+import { createBuilderView } from './components/BuilderView/BuilderView';
 
-import "./styles/global.css";
+import './styles/global.css';
 
-const app = document.getElementById("app")!;
+const app = document.getElementById('app')!;
 
 const actor = createActor(appMachine);
 
@@ -32,7 +32,7 @@ function getHashNotation(): string | null {
 
   const params = new URLSearchParams(hash.substring(1));
 
-  return params.get("notation");
+  return params.get('notation');
 }
 
 function getHashStagingNotation(): string | null {
@@ -42,7 +42,17 @@ function getHashStagingNotation(): string | null {
 
   const params = new URLSearchParams(hash.substring(1));
 
-  return params.get("stagingAreaNotation");
+  return params.get('stagingAreaNotation');
+}
+
+function getHashView(): string | null {
+  const hash = window.location.hash;
+
+  if (!hash || hash.length < 2) return null;
+
+  const params = new URLSearchParams(hash.substring(1));
+
+  return params.get('view');
 }
 
 function renderView(
@@ -53,81 +63,86 @@ function renderView(
   destroyCurrent();
 
   switch (state) {
-    case "browser":
+    case 'browser':
       currentView = createSolutionBrowser(app, {
         onSelectSolution(n) {
-          actor.send({ type: "VIEW_SOLUTION", notation: n });
+          actor.send({ type: 'VIEW_SOLUTION', notation: n });
         },
 
         onNavigateToBuild() {
-          actor.send({ type: "OPEN_BUILDER", notation: null });
+          actor.send({ type: 'OPEN_BUILDER', notation: null });
         },
       });
 
-      updateUrl("/", null);
+      updateUrl('/', null);
 
       break;
 
-    case "viewer":
+    case 'viewer':
       if (notation) {
         currentView = createSolutionViewer(app, notation, {
           onBack() {
-            actor.send({ type: "BACK_TO_BROWSER" });
+            actor.send({ type: 'BACK_TO_BROWSER' });
           },
         });
 
-        updateUrl("/visualize", notation);
+        updateUrl('/visualize', notation);
       }
 
       break;
 
-    case "builder":
+    case 'builder':
       currentView = createBuilderView(
         app,
         notation,
         stagingAreaNotation ?? null,
         {
           onBack() {
-            actor.send({ type: "BACK_TO_BROWSER" });
+            actor.send({ type: 'BACK_TO_BROWSER' });
           },
         },
       );
 
-      updateUrl("/build", notation);
+      updateUrl('/build', notation);
 
       break;
   }
 }
 
 function updateUrl(path: string, notation: string | null) {
-  const hash = notation ? `#notation=${notation}` : "";
+  if (path === '/') {
+    window.history.pushState(null, '', window.location.pathname);
+    return;
+  }
 
-  const url = `${path}${hash}`;
+  const viewName = path === '/visualize' ? 'visualize' : 'build';
+  let hash = `#view=${viewName}`;
+  if (notation) hash += `&notation=${notation}`;
 
-  window.history.pushState(null, "", url);
+  window.history.pushState(null, '', hash);
 }
 
 // Handle popstate (back/forward)
 
-window.addEventListener("popstate", () => {
-  const pathname = window.location.pathname;
+window.addEventListener('popstate', () => {
+  const view = getHashView();
 
   const notation = getHashNotation();
 
   const stagingNotation = getHashStagingNotation();
 
-  if (pathname === "/build") {
+  if (view === 'build') {
     actor.send({
-      type: "OPEN_BUILDER",
+      type: 'OPEN_BUILDER',
       notation,
       stagingAreaNotation: stagingNotation,
     });
-  } else if (pathname === "/visualize" && notation) {
-    actor.send({ type: "VIEW_SOLUTION", notation });
+  } else if (view === 'visualize' && notation) {
+    actor.send({ type: 'VIEW_SOLUTION', notation });
   } else if (notation) {
-    actor.send({ type: "VIEW_SOLUTION", notation });
+    actor.send({ type: 'VIEW_SOLUTION', notation });
   } else {
-    actor.send({ type: "BACK_TO_BROWSER" });
+    actor.send({ type: 'BACK_TO_BROWSER' });
   }
 });
 
@@ -136,22 +151,22 @@ window.addEventListener("popstate", () => {
 // state doesn't push '/' over the user's URL.
 actor.start();
 
-const initPathname = window.location.pathname;
+const initView = getHashView();
 
 const initNotation = getHashNotation();
 
 const initStagingNotation = getHashStagingNotation();
 
-if (initPathname === "/build") {
+if (initView === 'build') {
   actor.send({
-    type: "OPEN_BUILDER",
+    type: 'OPEN_BUILDER',
     notation: initNotation,
     stagingAreaNotation: initStagingNotation,
   });
-} else if (initPathname === "/visualize" && initNotation) {
-  actor.send({ type: "VIEW_SOLUTION", notation: initNotation });
+} else if (initView === 'visualize' && initNotation) {
+  actor.send({ type: 'VIEW_SOLUTION', notation: initNotation });
 } else if (initNotation) {
-  actor.send({ type: "VIEW_SOLUTION", notation: initNotation });
+  actor.send({ type: 'VIEW_SOLUTION', notation: initNotation });
 }
 
 // Now subscribe for future updates
