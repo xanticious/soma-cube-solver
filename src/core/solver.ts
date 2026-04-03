@@ -220,20 +220,23 @@ export function solutionCanonicalKey(placements: Placement[]): string {
 }
 
 /**
- * The 24 rotations of the whole cube as coordinate permutation+sign functions.
+ * The 48 symmetries (rotations + reflections) of the cube as coordinate
+ * permutation+sign functions, paired with their determinant.
+ * det=+1 → proper rotation; det=-1 → improper rotation (reflection).
  * Each maps (x, y, z) in a 3x3x3 grid to a new (x, y, z).
  */
 
-function cubeRotations(): ((v: Vec3) => Vec3)[] {
-  // Generate all 24 rotation matrices by applying distinct orientations to basis vectors
+interface CubeSymmetry {
+  fn: (v: Vec3) => Vec3;
+  det: 1 | -1;
+}
 
-  // For a 3x3x3 grid with coords 0-2, we rotate around center (1,1,1)
+function cubeSymmetries(): CubeSymmetry[] {
+  // For a 3x3x3 grid with coords 0-2, we rotate/reflect around center (1,1,1)
 
-  const rots: ((v: Vec3) => Vec3)[] = [];
+  const syms: CubeSymmetry[] = [];
 
   const signs = [1, -1];
-
-  // All permutations of axes with all sign combinations that form proper rotations (det = +1)
 
   const perms: [number, number, number][] = [
     [0, 1, 2],
@@ -255,10 +258,6 @@ function cubeRotations(): ((v: Vec3) => Vec3)[] {
         for (const s2 of signs) {
           const ss = [s0, s1, s2];
 
-          // Check if this is a proper rotation (determinant = +1)
-
-          // det of the permutation matrix with signs
-
           const permSign =
             perm[0] === 0
               ? perm[1] === 1
@@ -274,44 +273,50 @@ function cubeRotations(): ((v: Vec3) => Vec3)[] {
                   ? 1
                   : -1;
 
-          const det = permSign * s0 * s1 * s2;
+          const det = (permSign * s0 * s1 * s2) as 1 | -1;
 
-          if (det !== 1) continue;
+          syms.push({
+            det,
 
-          rots.push((v: Vec3) => {
-            const coords = [v.x, v.y, v.z];
+            fn: (v: Vec3) => {
+              const coords = [v.x, v.y, v.z];
 
-            // Rotate around center (1,1,1): translate to origin, apply, translate back
+              // Rotate/reflect around center (1,1,1): translate to origin, apply, translate back
 
-            const centered = coords.map((c) => c - 1);
+              const centered = coords.map((c) => c - 1);
 
-            const rotated = [
-              ss[0]! * centered[perm[0]!]!,
+              const rotated = [
+                ss[0]! * centered[perm[0]!]!,
 
-              ss[1]! * centered[perm[1]!]!,
+                ss[1]! * centered[perm[1]!]!,
 
-              ss[2]! * centered[perm[2]!]!,
-            ];
+                ss[2]! * centered[perm[2]!]!,
+              ];
 
-            return {
-              x: rotated[0]! + 1,
+              return {
+                x: rotated[0]! + 1,
 
-              y: rotated[1]! + 1,
+                y: rotated[1]! + 1,
 
-              z: rotated[2]! + 1,
-            };
+                z: rotated[2]! + 1,
+              };
+            },
           });
         }
       }
     }
   }
 
-  return rots;
+  return syms;
 }
 
 /**
- * Get the canonical key for a solution under all 24 cube rotations.
- * Returns the lexicographically smallest key.
+ * Get the canonical key for a solution under all 48 cube symmetries
+ * (rotations + reflections). Returns the lexicographically smallest key.
+ *
+ * Pieces A and B are chiral mirrors of each other: a reflection of the whole
+ * cube swaps which cells are filled by A vs B. All other pieces are achiral
+ * (their reflected orientations are reachable by proper rotation).
  */
 
 export function solutionCanonicalKeyUnderRotation(
@@ -333,17 +338,23 @@ export function solutionCanonicalKeyUnderRotation(
     }
   }
 
-  const rotations = cubeRotations();
+  const symmetries = cubeSymmetries();
 
   let minKey = grid.join('');
 
-  for (const rot of rotations) {
+  for (const { fn: rot, det } of symmetries) {
     const rotatedGrid = Array.from<string>({ length: 27 }).fill('.');
 
     for (let x = 0; x < gridSize; x++) {
       for (let y = 0; y < gridSize; y++) {
         for (let z = 0; z < gridSize; z++) {
-          const src = grid[x * 9 + y * 3 + z]!;
+          let src = grid[x * 9 + y * 3 + z]!;
+
+          // Reflections (det=-1) swap the chiral piece pair A↔B.
+          if (det === -1) {
+            if (src === 'A') src = 'B';
+            else if (src === 'B') src = 'A';
+          }
 
           const dest = rot({ x, y, z });
 
@@ -363,7 +374,7 @@ export function solutionCanonicalKeyUnderRotation(
 }
 
 /**
- * Filter solutions to distinct ones (unique under rotation of the whole cube).
+ * Filter solutions to distinct ones (unique under rotation and reflection of the whole cube).
  */
 
 export function filterDistinctSolutions(

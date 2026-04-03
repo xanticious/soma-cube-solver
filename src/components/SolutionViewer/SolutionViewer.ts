@@ -1,15 +1,24 @@
-import type { PieceName, Placement } from "../../core/types";
-import { PIECE_NAMES } from "../../core/types";
-import { PIECE_COLORS } from "../../core/pieces";
-import { parseSolution, serializeSolution } from "../../core/notation";
+import type { PieceName, Placement } from '../../core/types';
+import { PIECE_NAMES } from '../../core/types';
+import { PIECE_COLORS } from '../../core/pieces';
+import { parseSolution, serializeSolution } from '../../core/notation';
 import {
   createScene,
   renderPlacements,
   renderGrid,
   setCameraForGrid,
   type SceneContext,
-} from "../Scene/Scene";
-import styles from "./SolutionViewer.module.css";
+} from '../Scene/Scene';
+import solutionsData from '../../data/solutions.json';
+import styles from './SolutionViewer.module.css';
+
+interface SolutionEntry {
+  notation: string;
+  distinct: boolean;
+  canonical: string;
+}
+
+const allSolutionsData = solutionsData as SolutionEntry[];
 
 export interface SolutionViewerCallbacks {
   onBack(): void;
@@ -26,7 +35,7 @@ export function createSolutionViewer(
     container.innerHTML = `<div style="padding:40px;text-align:center;color:#c62828;">Invalid notation string.</div>`;
     return {
       destroy() {
-        container.innerHTML = "";
+        container.innerHTML = '';
       },
     };
   }
@@ -48,6 +57,12 @@ export function createSolutionViewer(
 
   const fullNotation = serializeSolution(placements);
 
+  // Look up this solution in the pre-computed data to get canonical info.
+  const entry = allSolutionsData.find((s) => s.notation === fullNotation);
+  const canonicalIndex = entry
+    ? allSolutionsData.findIndex((s) => s.notation === entry.canonical) + 1
+    : null;
+
   function getVisiblePlacements(): Placement[] {
     return solutionPieces
       .filter((n) => !hiddenPieces.has(n))
@@ -58,23 +73,37 @@ export function createSolutionViewer(
     return solutionPieces
       .map((name) => {
         const hidden = hiddenPieces.has(name);
-        return `<div class="${styles.pieceRow}${hidden ? ` ${styles.pieceRowHidden}` : ""}">
+        return `<div class="${styles.pieceRow}${hidden ? ` ${styles.pieceRowHidden}` : ''}">
           <span class="${styles.colorSwatch}" style="background:${PIECE_COLORS[name]}"></span>
           <span class="${styles.pieceName}">${name}</span>
-          <button class="${styles.toggleBtn}" data-toggle="${name}">${hidden ? "Show" : "Hide"}</button>
+          <button class="${styles.toggleBtn}" data-toggle="${name}">${hidden ? 'Show' : 'Hide'}</button>
         </div>`;
       })
-      .join("");
+      .join('');
+  }
+
+  function canonicalInfoHtml(): string {
+    if (!entry) return '';
+    if (entry.distinct) {
+      return `<div class="${styles.canonicalInfo}">
+        <span class="${styles.distinctBadge}">One of 240 Distinct Solutions</span>
+      </div>`;
+    }
+    const url = `/visualize#notation=${entry.canonical}`;
+    return `<div class="${styles.canonicalInfo}">
+      <p class="${styles.canonicalLabel}">Rotation / reflection of:</p>
+      <a class="${styles.canonicalLink}" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">#${canonicalIndex}&nbsp;${escapeHtml(entry.canonical)}</a>
+    </div>`;
   }
 
   function updatePieceList() {
-    const el = container.querySelector("[data-piece-list]");
+    const el = container.querySelector('[data-piece-list]');
     if (el) el.innerHTML = pieceListHtml();
   }
 
   function handleClick(e: MouseEvent) {
     const btn = (e.target as HTMLElement).closest(
-      "[data-action],[data-toggle]",
+      '[data-action],[data-toggle]',
     ) as HTMLElement | null;
     if (!btn) return;
 
@@ -88,26 +117,26 @@ export function createSolutionViewer(
     }
 
     switch (btn.dataset.action) {
-      case "home":
+      case 'home':
         callbacks.onBack();
         break;
-      case "show-all":
+      case 'show-all':
         hiddenPieces.clear();
         updatePieceList();
         renderPlacements(sceneCtx!, getVisiblePlacements());
         break;
-      case "hide-all":
+      case 'hide-all':
         for (const n of solutionPieces) hiddenPieces.add(n);
         updatePieceList();
         renderPlacements(sceneCtx!, getVisiblePlacements());
         break;
-      case "copy":
+      case 'copy':
         navigator.clipboard.writeText(fullNotation);
         break;
     }
   }
 
-  container.addEventListener("click", handleClick);
+  container.addEventListener('click', handleClick);
 
   // Initial render
   container.innerHTML = `
@@ -117,6 +146,7 @@ export function createSolutionViewer(
           <button data-action="show-all">Show All</button>
           <button data-action="hide-all">Hide All</button>
         </div>
+        ${canonicalInfoHtml()}
         <div class="${styles.pieceList}" data-piece-list>${pieceListHtml()}</div>
         <div class="${styles.sidebarFooter}">
           <button data-action="home">Home</button>
@@ -131,7 +161,7 @@ export function createSolutionViewer(
       </div>
     </div>`;
 
-  const sceneContainer = container.querySelector("[data-scene]") as HTMLElement;
+  const sceneContainer = container.querySelector('[data-scene]') as HTMLElement;
   sceneCtx = createScene(sceneContainer);
   renderGrid(sceneCtx, 3);
   setCameraForGrid(sceneCtx, 3);
@@ -139,18 +169,18 @@ export function createSolutionViewer(
 
   return {
     destroy() {
-      container.removeEventListener("click", handleClick);
+      container.removeEventListener('click', handleClick);
       sceneCtx?.dispose();
       sceneCtx = null;
-      container.innerHTML = "";
+      container.innerHTML = '';
     },
   };
 }
 
 function escapeHtml(str: string): string {
   return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
