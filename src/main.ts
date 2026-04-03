@@ -2,6 +2,8 @@ import { createActor } from 'xstate';
 
 import { appMachine } from './state/appMachine';
 
+import { createHomePage } from './components/HomePage/HomePage';
+
 import { createSolutionBrowser } from './components/SolutionBrowser/SolutionBrowser';
 
 import { createSolutionViewer } from './components/SolutionViewer/SolutionViewer';
@@ -63,6 +65,20 @@ function renderView(
   destroyCurrent();
 
   switch (state) {
+    case 'home':
+      currentView = createHomePage(app, {
+        onGoToSolutions() {
+          actor.send({ type: 'GO_TO_BROWSER' });
+        },
+        onGoToBuilder() {
+          actor.send({ type: 'OPEN_BUILDER', notation: null });
+        },
+      });
+
+      updateUrl('home', null);
+
+      break;
+
     case 'browser':
       currentView = createSolutionBrowser(app, {
         onSelectSolution(n) {
@@ -72,21 +88,28 @@ function renderView(
         onNavigateToBuild() {
           actor.send({ type: 'OPEN_BUILDER', notation: null });
         },
+
+        onGoHome() {
+          actor.send({ type: 'GO_HOME' });
+        },
       });
 
-      updateUrl('/', null);
+      updateUrl('browser', null);
 
       break;
 
     case 'viewer':
       if (notation) {
         currentView = createSolutionViewer(app, notation, {
-          onBack() {
+          onBackToList() {
             actor.send({ type: 'BACK_TO_BROWSER' });
+          },
+          onGoHome() {
+            actor.send({ type: 'GO_HOME' });
           },
         });
 
-        updateUrl('/visualize', notation);
+        updateUrl('viewer', notation);
       }
 
       break;
@@ -97,25 +120,30 @@ function renderView(
         notation,
         stagingAreaNotation ?? null,
         {
-          onBack() {
-            actor.send({ type: 'BACK_TO_BROWSER' });
+          onGoHome() {
+            actor.send({ type: 'GO_HOME' });
           },
         },
       );
 
-      updateUrl('/build', notation);
+      updateUrl('builder', notation);
 
       break;
   }
 }
 
-function updateUrl(path: string, notation: string | null) {
-  if (path === '/') {
+function updateUrl(state: string, notation: string | null) {
+  if (state === 'home') {
     window.history.pushState(null, '', window.location.pathname);
     return;
   }
 
-  const viewName = path === '/visualize' ? 'visualize' : 'build';
+  if (state === 'browser') {
+    window.history.pushState(null, '', '#view=solutions');
+    return;
+  }
+
+  const viewName = state === 'viewer' ? 'visualize' : 'build';
   let hash = `#view=${viewName}`;
   if (notation) hash += `&notation=${notation}`;
 
@@ -139,10 +167,10 @@ window.addEventListener('popstate', () => {
     });
   } else if (view === 'visualize' && notation) {
     actor.send({ type: 'VIEW_SOLUTION', notation });
-  } else if (notation) {
-    actor.send({ type: 'VIEW_SOLUTION', notation });
+  } else if (view === 'solutions') {
+    actor.send({ type: 'GO_TO_BROWSER' });
   } else {
-    actor.send({ type: 'BACK_TO_BROWSER' });
+    actor.send({ type: 'GO_HOME' });
   }
 });
 
@@ -165,8 +193,8 @@ if (initView === 'build') {
   });
 } else if (initView === 'visualize' && initNotation) {
   actor.send({ type: 'VIEW_SOLUTION', notation: initNotation });
-} else if (initNotation) {
-  actor.send({ type: 'VIEW_SOLUTION', notation: initNotation });
+} else if (initView === 'solutions') {
+  actor.send({ type: 'GO_TO_BROWSER' });
 }
 
 // Now subscribe for future updates

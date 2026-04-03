@@ -16,6 +16,8 @@ export interface SolutionBrowserCallbacks {
   onSelectSolution(notation: string): void;
 
   onNavigateToBuild(): void;
+
+  onGoHome(): void;
 }
 
 export function createSolutionBrowser(
@@ -42,6 +44,9 @@ export function createSolutionBrowser(
               Distinct (${solutions.filter((s) => s.distinct).length})
             </button>
           </div>
+          <button class="${styles.filterBtn}" data-action="home">
+            Home
+          </button>
           <button class="${styles.filterBtn}" data-action="build">
             Builder
           </button>
@@ -87,6 +92,12 @@ export function createSolutionBrowser(
         );
 
         callbacks.onSelectSolution(notation);
+      });
+    });
+
+    container.querySelectorAll("[data-action='home']").forEach((btn) => {
+      btn.addEventListener('click', () => {
+        callbacks.onGoHome();
       });
     });
 

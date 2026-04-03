@@ -33,7 +33,7 @@ interface BuilderState {
 }
 
 export interface BuilderViewCallbacks {
-  onBack(): void;
+  onGoHome(): void;
 }
 
 const ROTATION_OPTIONS: RotationStep[] = [0, 1, 2, 3];
@@ -374,7 +374,7 @@ export function createBuilderView(
           state.selectedPiece = null;
           renderUI();
         } else if (action === 'home') {
-          callbacks.onBack();
+          callbacks.onGoHome();
         } else if (action === 'copy') {
           const solutionPlacements = getSolutionPlacements();
           if (solutionPlacements.length > 0) {

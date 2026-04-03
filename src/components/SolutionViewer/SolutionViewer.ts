@@ -21,7 +21,8 @@ interface SolutionEntry {
 const allSolutionsData = solutionsData as SolutionEntry[];
 
 export interface SolutionViewerCallbacks {
-  onBack(): void;
+  onBackToList(): void;
+  onGoHome(): void;
 }
 
 export function createSolutionViewer(
@@ -118,7 +119,10 @@ export function createSolutionViewer(
 
     switch (btn.dataset.action) {
       case 'home':
-        callbacks.onBack();
+        callbacks.onGoHome();
+        break;
+      case 'back':
+        callbacks.onBackToList();
         break;
       case 'show-all':
         hiddenPieces.clear();
@@ -144,6 +148,7 @@ export function createSolutionViewer(
       <div class="${styles.sidebar}">
         <div class="${styles.sidebarHeader}">
           <button data-action="home">Home</button>
+          <button data-action="back">Back to List</button>
         </div>
         ${canonicalInfoHtml()}
         <div class="${styles.bulkActions}">

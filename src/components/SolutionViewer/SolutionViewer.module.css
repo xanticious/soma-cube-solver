@@ -83,6 +83,12 @@
   background: #f0f0f0;
 }
 
+.sidebarHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .sidebarHeader button {
   width: 100%;
   padding: 8px;
