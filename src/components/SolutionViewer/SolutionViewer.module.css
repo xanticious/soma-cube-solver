@@ -83,11 +83,7 @@
   background: #f0f0f0;
 }
 
-.sidebarFooter {
-  margin-top: auto;
-}
-
-.sidebarFooter button {
+.sidebarHeader button {
   width: 100%;
   padding: 8px;
   border: 1px solid #ccc;
@@ -97,7 +93,7 @@
   border-radius: 4px;
 }
 
-.sidebarFooter button:hover {
+.sidebarHeader button:hover {
   background: #f0f0f0;
 }
 

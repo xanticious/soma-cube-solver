@@ -142,15 +142,15 @@ export function createSolutionViewer(
   container.innerHTML = `
     <div class="${styles.container}">
       <div class="${styles.sidebar}">
+        <div class="${styles.sidebarHeader}">
+          <button data-action="home">Home</button>
+        </div>
+        ${canonicalInfoHtml()}
         <div class="${styles.bulkActions}">
           <button data-action="show-all">Show All</button>
           <button data-action="hide-all">Hide All</button>
         </div>
-        ${canonicalInfoHtml()}
         <div class="${styles.pieceList}" data-piece-list>${pieceListHtml()}</div>
-        <div class="${styles.sidebarFooter}">
-          <button data-action="home">Home</button>
-        </div>
       </div>
       <div class="${styles.main}">
         <div class="${styles.sceneContainer}" data-scene></div>
