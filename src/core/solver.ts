@@ -33,10 +33,10 @@ export function computeAllVariants(): PieceVariant[] {
     const orientations = distinctPieceOrientations(baseOffsets);
 
     for (const orientation of orientations) {
-      const transformed = baseOffsets.map((v) => {
-        const r = transformOffsets([v], orientation, { x: 0, y: 0, z: 0 });
-
-        return r[0]!;
+      const transformed = transformOffsets(baseOffsets, orientation, {
+        x: 0,
+        y: 0,
+        z: 0,
       });
 
       const normalized = normalizePositions(transformed);

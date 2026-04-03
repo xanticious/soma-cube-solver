@@ -1,4 +1,4 @@
-import type { Orientation, RotationStep, Vec3 } from "./types";
+import type { Orientation, RotationStep, Vec3 } from './types';
 
 /**
  * Apply a single 90° rotation step around an axis.
@@ -96,17 +96,19 @@ export function transformOffsets(
 
   position: Vec3,
 ): Vec3[] {
-  return offsets.map((offset) => {
-    const rotated = applyOrientation(offset, orientation);
+  const rotated = offsets.map((offset) =>
+    applyOrientation(offset, orientation),
+  );
 
-    return {
-      x: rotated.x + position.x,
+  const normalized = normalizePositions(rotated);
 
-      y: rotated.y + position.y,
+  return normalized.map((p) => ({
+    x: p.x + position.x,
 
-      z: rotated.z + position.z,
-    };
-  });
+    y: p.y + position.y,
+
+    z: p.z + position.z,
+  }));
 }
 
 /**
@@ -194,7 +196,7 @@ export function distinctPieceOrientations(
 
     const normalized = normalizePositions(transformed);
 
-    const key = normalized.map((p) => `${p.x},${p.y},${p.z}`).join("|");
+    const key = normalized.map((p) => `${p.x},${p.y},${p.z}`).join('|');
 
     if (!seen.has(key)) {
       seen.add(key);

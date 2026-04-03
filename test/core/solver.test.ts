@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll } from "vitest";
 
 import {
   computeAllVariants,
@@ -9,41 +9,41 @@ import {
   solutionCanonicalKeyUnderRotation,
   solveAll,
   filterDistinctSolutions,
-} from '@/core/solver';
+} from "@/core/solver";
 
-import { PIECE_OFFSETS } from '@/core/pieces';
-import { transformOffsets, normalizePositions } from '@/core/rotations';
-import { validatePlacements, isCubeSolved } from '@/core/validation';
-import { serializeSolution, parseSolution } from '@/core/notation';
-import { PIECE_NAMES } from '@/core/types';
-import type { Placement, Vec3 } from '@/core/types';
+import { PIECE_OFFSETS } from "@/core/pieces";
+import { transformOffsets, normalizePositions } from "@/core/rotations";
+import { validatePlacements, isCubeSolved } from "@/core/validation";
+import { serializeSolution, parseSolution } from "@/core/notation";
+import { PIECE_NAMES } from "@/core/types";
+import type { Placement, Vec3 } from "@/core/types";
 
 // ---------------------------------------------------------------------------
 // gridIndex
 // ---------------------------------------------------------------------------
 
-describe('gridIndex', () => {
-  it('maps (0,0,0) to 0', () => {
+describe("gridIndex", () => {
+  it("maps (0,0,0) to 0", () => {
     expect(gridIndex(0, 0, 0)).toBe(0);
   });
 
-  it('maps (2,2,2) to 26', () => {
+  it("maps (2,2,2) to 26", () => {
     expect(gridIndex(2, 2, 2)).toBe(26);
   });
 
-  it('maps (1,0,0) to 9', () => {
+  it("maps (1,0,0) to 9", () => {
     expect(gridIndex(1, 0, 0)).toBe(9);
   });
 
-  it('maps (0,1,0) to 3', () => {
+  it("maps (0,1,0) to 3", () => {
     expect(gridIndex(0, 1, 0)).toBe(3);
   });
 
-  it('maps (0,0,1) to 1', () => {
+  it("maps (0,0,1) to 1", () => {
     expect(gridIndex(0, 0, 1)).toBe(1);
   });
 
-  it('produces 27 unique indices for all 3x3x3 cells', () => {
+  it("produces 27 unique indices for all 3x3x3 cells", () => {
     const indices = new Set<number>();
     for (let x = 0; x < 3; x++) {
       for (let y = 0; y < 3; y++) {
@@ -60,15 +60,15 @@ describe('gridIndex', () => {
 // tryPlace
 // ---------------------------------------------------------------------------
 
-describe('tryPlace', () => {
-  it('places a single cubelet at origin in empty grid', () => {
+describe("tryPlace", () => {
+  it("places a single cubelet at origin in empty grid", () => {
     const grid = new Uint8Array(27);
     const offsets: Vec3[] = [{ x: 0, y: 0, z: 0 }];
     const result = tryPlace(offsets, 0, 0, 0, grid, 3);
     expect(result).toEqual([0]);
   });
 
-  it('places V piece offsets at origin', () => {
+  it("places V piece offsets at origin", () => {
     const grid = new Uint8Array(27);
     // V = (0,0,0), (1,0,0), (0,1,0) — already normalized
     const offsets: Vec3[] = [
@@ -85,7 +85,7 @@ describe('tryPlace', () => {
     expect(result).toContain(gridIndex(0, 1, 0));
   });
 
-  it('returns null when piece goes out of bounds', () => {
+  it("returns null when piece goes out of bounds", () => {
     const grid = new Uint8Array(27);
     // Piece extends to x=3 (out of 3x3x3)
     const offsets: Vec3[] = [
@@ -96,7 +96,7 @@ describe('tryPlace', () => {
     expect(result).toBeNull();
   });
 
-  it('returns null when cell is already occupied', () => {
+  it("returns null when cell is already occupied", () => {
     const grid = new Uint8Array(27);
     grid[0] = 1; // occupy (0,0,0)
     const offsets: Vec3[] = [{ x: 0, y: 0, z: 0 }];
@@ -104,14 +104,14 @@ describe('tryPlace', () => {
     expect(result).toBeNull();
   });
 
-  it('can place at non-zero position', () => {
+  it("can place at non-zero position", () => {
     const grid = new Uint8Array(27);
     const offsets: Vec3[] = [{ x: 0, y: 0, z: 0 }];
     const result = tryPlace(offsets, 2, 2, 2, grid, 3);
     expect(result).toEqual([gridIndex(2, 2, 2)]);
   });
 
-  it('returns null for negative resulting coordinates', () => {
+  it("returns null for negative resulting coordinates", () => {
     const grid = new Uint8Array(27);
     const offsets: Vec3[] = [{ x: -1, y: 0, z: 0 }];
     const result = tryPlace(offsets, 0, 0, 0, grid, 3);
@@ -123,10 +123,10 @@ describe('tryPlace', () => {
 // computeAllVariants
 // ---------------------------------------------------------------------------
 
-describe('computeAllVariants', () => {
+describe("computeAllVariants", () => {
   const variants = computeAllVariants();
 
-  it('produces variants for all 7 pieces', () => {
+  it("produces variants for all 7 pieces", () => {
     const pieces = new Set(variants.map((v) => v.piece));
     expect(pieces.size).toBe(7);
     for (const name of PIECE_NAMES) {
@@ -134,14 +134,14 @@ describe('computeAllVariants', () => {
     }
   });
 
-  it('each variant has the correct number of cubelets', () => {
+  it("each variant has the correct number of cubelets", () => {
     for (const v of variants) {
-      const expectedCount = v.piece === 'V' ? 3 : 4;
+      const expectedCount = v.piece === "V" ? 3 : 4;
       expect(v.offsets).toHaveLength(expectedCount);
     }
   });
 
-  it('all variant offsets are non-negative (normalized)', () => {
+  it("all variant offsets are non-negative (normalized)", () => {
     for (const v of variants) {
       for (const o of v.offsets) {
         expect(o.x).toBeGreaterThanOrEqual(0);
@@ -151,14 +151,14 @@ describe('computeAllVariants', () => {
     }
   });
 
-  it('no duplicate offsets within any single variant', () => {
+  it("no duplicate offsets within any single variant", () => {
     for (const v of variants) {
       const keys = v.offsets.map((o) => `${o.x},${o.y},${o.z}`);
       expect(new Set(keys).size).toBe(keys.length);
     }
   });
 
-  it('variant offsets fit in 3x3x3 bounding box', () => {
+  it("variant offsets fit in 3x3x3 bounding box", () => {
     for (const v of variants) {
       for (const o of v.offsets) {
         expect(o.x).toBeLessThan(3);
@@ -168,7 +168,7 @@ describe('computeAllVariants', () => {
     }
   });
 
-  it('produces expected variant counts per piece', () => {
+  it("produces expected variant counts per piece", () => {
     const grouped = groupVariantsByPiece(variants);
     for (const name of PIECE_NAMES) {
       const count = grouped.get(name)!.length;
@@ -178,7 +178,7 @@ describe('computeAllVariants', () => {
     }
   });
 
-  it('variant offsets match what transformOffsets + normalizePositions produce', () => {
+  it("variant offsets match what transformOffsets + normalizePositions produce", () => {
     for (const v of variants) {
       const baseOffsets = PIECE_OFFSETS[v.piece];
       const transformed = transformOffsets(baseOffsets, v.orientation, {
@@ -196,15 +196,15 @@ describe('computeAllVariants', () => {
 // groupVariantsByPiece
 // ---------------------------------------------------------------------------
 
-describe('groupVariantsByPiece', () => {
+describe("groupVariantsByPiece", () => {
   const variants = computeAllVariants();
   const grouped = groupVariantsByPiece(variants);
 
-  it('has exactly 7 keys', () => {
+  it("has exactly 7 keys", () => {
     expect(grouped.size).toBe(7);
   });
 
-  it('total variants across all pieces equals computeAllVariants length', () => {
+  it("total variants across all pieces equals computeAllVariants length", () => {
     let total = 0;
     for (const [, list] of grouped) {
       total += list.length;
@@ -212,7 +212,7 @@ describe('groupVariantsByPiece', () => {
     expect(total).toBe(variants.length);
   });
 
-  it('each group only contains variants for that piece', () => {
+  it("each group only contains variants for that piece", () => {
     for (const [name, list] of grouped) {
       for (const v of list) {
         expect(v.piece).toBe(name);
@@ -225,10 +225,10 @@ describe('groupVariantsByPiece', () => {
 // Placement round-trip: solver output → notation → parse → validate
 // ---------------------------------------------------------------------------
 
-describe('placement round-trip integrity', () => {
-  it('a single placement serializes and parses back correctly', () => {
+describe("placement round-trip integrity", () => {
+  it("a single placement serializes and parses back correctly", () => {
     const placement: Placement = {
-      piece: 'V',
+      piece: "V",
       orientation: { a: 0, b: 0, c: 0 },
       position: { x: 0, y: 0, z: 0 },
     };
@@ -237,9 +237,9 @@ describe('placement round-trip integrity', () => {
     expect(parsed).toEqual([placement]);
   });
 
-  it('transformOffsets of a placement produces cells inside the grid', () => {
+  it("transformOffsets of a placement produces cells inside the grid", () => {
     const placement: Placement = {
-      piece: 'L',
+      piece: "L",
       orientation: { a: 0, b: 0, c: 0 },
       position: { x: 0, y: 0, z: 0 },
     };
@@ -263,35 +263,35 @@ describe('placement round-trip integrity', () => {
 // solutionCanonicalKey
 // ---------------------------------------------------------------------------
 
-describe('solutionCanonicalKey', () => {
-  it('produces a 27-char string for a valid placement set', () => {
+describe("solutionCanonicalKey", () => {
+  it("produces a 27-char string for a valid placement set", () => {
     const placements: Placement[] = [
       {
-        piece: 'V',
+        piece: "V",
         orientation: { a: 0, b: 0, c: 0 },
         position: { x: 0, y: 0, z: 0 },
       },
     ];
     const key = solutionCanonicalKey(placements);
     expect(key).toHaveLength(27);
-    expect(key.split('').filter((c) => c === 'V')).toHaveLength(3);
-    expect(key.split('').filter((c) => c === '.')).toHaveLength(24);
+    expect(key.split("").filter((c) => c === "V")).toHaveLength(3);
+    expect(key.split("").filter((c) => c === ".")).toHaveLength(24);
   });
 
-  it('cells are indexed as x*9 + y*3 + z', () => {
+  it("cells are indexed as x*9 + y*3 + z", () => {
     // Place V at (0,0,0): occupies (0,0,0), (1,0,0), (0,1,0)
     const placements: Placement[] = [
       {
-        piece: 'V',
+        piece: "V",
         orientation: { a: 0, b: 0, c: 0 },
         position: { x: 0, y: 0, z: 0 },
       },
     ];
     const key = solutionCanonicalKey(placements);
     // (0,0,0) -> idx 0, (1,0,0) -> idx 9, (0,1,0) -> idx 3
-    expect(key[0]).toBe('V');
-    expect(key[9]).toBe('V');
-    expect(key[3]).toBe('V');
+    expect(key[0]).toBe("V");
+    expect(key[9]).toBe("V");
+    expect(key[3]).toBe("V");
   });
 });
 
@@ -299,11 +299,11 @@ describe('solutionCanonicalKey', () => {
 // solutionCanonicalKeyUnderRotation
 // ---------------------------------------------------------------------------
 
-describe('solutionCanonicalKeyUnderRotation', () => {
-  it('returns a 27-char string', () => {
+describe("solutionCanonicalKeyUnderRotation", () => {
+  it("returns a 27-char string", () => {
     const placements: Placement[] = [
       {
-        piece: 'V',
+        piece: "V",
         orientation: { a: 0, b: 0, c: 0 },
         position: { x: 0, y: 0, z: 0 },
       },
@@ -312,10 +312,10 @@ describe('solutionCanonicalKeyUnderRotation', () => {
     expect(key).toHaveLength(27);
   });
 
-  it('is deterministic', () => {
+  it("is deterministic", () => {
     const placements: Placement[] = [
       {
-        piece: 'V',
+        piece: "V",
         orientation: { a: 0, b: 0, c: 0 },
         position: { x: 0, y: 0, z: 0 },
       },
@@ -330,24 +330,24 @@ describe('solutionCanonicalKeyUnderRotation', () => {
 // solveAll — full solver validation (shares a single solve run)
 // ---------------------------------------------------------------------------
 
-describe('solveAll', { timeout: 300_000 }, () => {
+describe("solveAll", { timeout: 300_000 }, () => {
   let allSolutions: Placement[][] = [];
 
   beforeAll(() => {
     allSolutions = solveAll();
   });
 
-  it('finds solutions', () => {
+  it("finds solutions", () => {
     expect(allSolutions.length).toBeGreaterThan(0);
   });
 
-  it('each solution has exactly 7 placements', () => {
+  it("each solution has exactly 7 placements", () => {
     for (const sol of allSolutions) {
       expect(sol).toHaveLength(7);
     }
   });
 
-  it('each solution uses all 7 distinct pieces', () => {
+  it("each solution uses all 7 distinct pieces", () => {
     for (const sol of allSolutions) {
       const pieces = new Set(sol.map((p) => p.piece));
       expect(pieces.size).toBe(7);
@@ -357,7 +357,7 @@ describe('solveAll', { timeout: 300_000 }, () => {
     }
   });
 
-  it('each solution occupies exactly 27 cells via transformOffsets', () => {
+  it("each solution occupies exactly 27 cells via transformOffsets", () => {
     for (const sol of allSolutions) {
       const allCells: Vec3[] = [];
       for (const p of sol) {
@@ -372,27 +372,27 @@ describe('solveAll', { timeout: 300_000 }, () => {
     }
   });
 
-  it('no solution has overlapping cells', () => {
+  it("no solution has overlapping cells", () => {
     for (const sol of allSolutions) {
       const result = validatePlacements(sol, 3);
       expect(result.overlaps).toHaveLength(0);
     }
   });
 
-  it('no solution has out-of-bounds cells', () => {
+  it("no solution has out-of-bounds cells", () => {
     for (const sol of allSolutions) {
       const result = validatePlacements(sol, 3);
       expect(result.outOfBounds).toHaveLength(0);
     }
   });
 
-  it('every solution passes isCubeSolved', () => {
+  it("every solution passes isCubeSolved", () => {
     for (const sol of allSolutions) {
       expect(isCubeSolved(sol)).toBe(true);
     }
   });
 
-  it('all cells are within 0-2 range', () => {
+  it("all cells are within 0-2 range", () => {
     for (const sol of allSolutions) {
       for (const p of sol) {
         const cells = transformOffsets(
@@ -412,7 +412,7 @@ describe('solveAll', { timeout: 300_000 }, () => {
     }
   });
 
-  it('first solution survives serialize → parse → validate', () => {
+  it("first solution survives serialize → parse → validate", () => {
     const first = allSolutions[0]!;
 
     // Serialize to notation
@@ -442,7 +442,7 @@ describe('solveAll', { timeout: 300_000 }, () => {
     }
   });
 
-  it('filterDistinctSolutions returns fewer or equal solutions', () => {
+  it("filterDistinctSolutions returns fewer or equal solutions", () => {
     const distinct = filterDistinctSolutions(allSolutions);
     expect(distinct.length).toBeLessThanOrEqual(allSolutions.length);
     expect(distinct.length).toBeGreaterThan(0);
@@ -453,7 +453,7 @@ describe('solveAll', { timeout: 300_000 }, () => {
 // Consistency between solver grid and transformOffsets
 // ---------------------------------------------------------------------------
 
-describe('solver grid consistency', () => {
+describe("solver grid consistency", () => {
   it("solver's internal normalized offsets match transformOffsets output", () => {
     const variants = computeAllVariants();
 
@@ -485,7 +485,7 @@ describe('solver grid consistency', () => {
     }
   });
 
-  it('solver placement position + normalized offsets yield same cells as transformOffsets + position', () => {
+  it("solver placement position + normalized offsets yield same cells as transformOffsets + position", () => {
     // Key test: the solver stores normalized offsets and adds position.
     // But the notation/validation use transformOffsets(baseOffsets, orientation, position).
     // These MUST produce the same cell set for solutions to be valid.

@@ -40,7 +40,7 @@ export interface Placement {
   position: Vec3;
 }
 
-export const PIECE_NAMES = ['V', 'L', 'T', 'Z', 'A', 'B', 'P'] as const;
+export const PIECE_NAMES = ["V", "L", "T", "Z", "A", "B", "P"] as const;
 
 export type PieceName = (typeof PIECE_NAMES)[number];
 
@@ -53,4 +53,4 @@ export const GRID_SIZE_BUILDER = 3;
  */
 export const BUILDER_STAGING_GAP = 2;
 
-export type PieceArea = 'hidden' | 'staging' | 'solution';
+export type PieceArea = "hidden" | "staging" | "solution";
