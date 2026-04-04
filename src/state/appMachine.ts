@@ -39,6 +39,15 @@ export const appMachine = createMachine({
           target: 'browser',
         },
 
+        VIEW_SOLUTION: {
+          target: 'viewer',
+
+          actions: assign({
+            currentNotation: ({ event }) => event.notation,
+            stagingAreaNotation: () => null,
+          }),
+        },
+
         OPEN_BUILDER: {
           target: 'builder',
 

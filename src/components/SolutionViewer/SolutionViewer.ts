@@ -167,7 +167,9 @@ export function createSolutionViewer(
     </div>`;
 
   const sceneContainer = container.querySelector('[data-scene]') as HTMLElement;
-  sceneCtx = createScene(sceneContainer);
+  sceneCtx = createScene(sceneContainer, () => {
+    if (sceneCtx) setCameraForGrid(sceneCtx, 3);
+  });
   renderGrid(sceneCtx, 3);
   setCameraForGrid(sceneCtx, 3);
   renderPlacements(sceneCtx, getVisiblePlacements());

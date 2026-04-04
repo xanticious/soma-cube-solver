@@ -182,7 +182,7 @@ export function createBuilderView(
     const solutionPlacements = getSolutionPlacements();
     const stagingPlacements = getStagingPlacements();
 
-    const parts: string[] = [];
+    const parts: string[] = ['view=build'];
     if (solutionPlacements.length > 0) {
       parts.push(`notation=${serializeSolution(solutionPlacements)}`);
     }
@@ -190,8 +190,7 @@ export function createBuilderView(
       parts.push(`stagingAreaNotation=${serializeSolution(stagingPlacements)}`);
     }
 
-    const hash = parts.length > 0 ? `#${parts.join('&')}` : '';
-    window.history.replaceState(null, '', `/build${hash}`);
+    window.history.replaceState(null, '', `#${parts.join('&')}`);
   }
 
   function radioGroup(
@@ -336,7 +335,14 @@ export function createBuilderView(
       const sceneContainer = container.querySelector(
         '[data-scene]',
       ) as HTMLElement;
-      sceneCtx = createScene(sceneContainer);
+      sceneCtx = createScene(sceneContainer, () => {
+        if (sceneCtx)
+          setCameraForDualGrids(
+            sceneCtx,
+            GRID_SIZE_BUILDER,
+            BUILDER_STAGING_GAP,
+          );
+      });
       renderDualGrids(sceneCtx, GRID_SIZE_BUILDER, BUILDER_STAGING_GAP);
       renderDualGridLabels(sceneCtx, GRID_SIZE_BUILDER, BUILDER_STAGING_GAP);
       setCameraForDualGrids(sceneCtx, GRID_SIZE_BUILDER, BUILDER_STAGING_GAP);
