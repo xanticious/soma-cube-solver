@@ -1,4 +1,4 @@
-import type { Orientation, RotationStep, Vec3 } from './types';
+import type { Orientation, RotationStep, Vec3 } from "./types";
 
 /**
  * Apply a single 90° rotation step around an axis.
@@ -196,7 +196,7 @@ export function distinctPieceOrientations(
 
     const normalized = normalizePositions(transformed);
 
-    const key = normalized.map((p) => `${p.x},${p.y},${p.z}`).join('|');
+    const key = normalized.map((p) => `${p.x},${p.y},${p.z}`).join("|");
 
     if (!seen.has(key)) {
       seen.add(key);

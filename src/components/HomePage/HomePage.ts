@@ -1,32 +1,45 @@
-import { PIECE_COLORS, PIECE_OFFSETS } from '../../core/pieces';
-import { PIECE_NAMES } from '../../core/types';
-import type { PieceName } from '../../core/types';
+import { PIECE_COLORS, PIECE_OFFSETS } from "../../core/pieces";
+
+import { PIECE_NAMES } from "../../core/types";
+
+import type { PieceName } from "../../core/types";
+
 import {
   createScene,
   renderPlacements,
   renderGrid,
   type SceneContext,
-} from '../Scene/Scene';
-import styles from './HomePage.module.css';
+} from "../Scene/Scene";
+
+import styles from "./HomePage.module.css";
 
 export interface HomePageCallbacks {
   onGoToSolutions(): void;
+
   onGoToBuilder(): void;
 }
 
 // Piece descriptions shown under each preview
+
 const PIECE_DESCRIPTIONS: Record<PieceName, string> = {
-  V: 'tricube (3 cubelets)',
-  L: 'L-tetracube',
-  T: 'T-tetracube',
-  Z: 'Z-tetracube (skew)',
-  A: 'left-handed screw',
-  B: 'right-handed screw',
-  P: 'branch',
+  V: "tricube (3 cubelets)",
+
+  L: "L-tetracube",
+
+  T: "T-tetracube",
+
+  Z: "Z-tetracube (skew)",
+
+  A: "left-handed screw",
+
+  B: "right-handed screw",
+
+  P: "branch",
 };
 
 function createPiecePreviewScene(
   container: HTMLElement,
+
   piece: PieceName,
 ): SceneContext {
   const ctx = createScene(container);
@@ -36,23 +49,35 @@ function createPiecePreviewScene(
   renderPlacements(ctx, [
     {
       piece,
+
       orientation: { a: 0, b: 0, c: 0 },
+
       position: { x: 0, y: 0, z: 0 },
     },
   ]);
 
   // Compute bounding box of the piece to center the camera
+
   const offsets = PIECE_OFFSETS[piece];
+
   const maxX = Math.max(...offsets.map((o) => o.x));
+
   const maxY = Math.max(...offsets.map((o) => o.y));
+
   const maxZ = Math.max(...offsets.map((o) => o.z));
+
   const cx = maxX / 2;
+
   const cy = maxY / 2;
+
   const cz = maxZ / 2;
+
   const dist = 3.8;
 
   ctx.controls.target.set(cx, cy, cz);
+
   ctx.camera.position.set(cx + dist, cy + dist * 0.8, cz + dist);
+
   ctx.controls.update();
 
   return ctx;
@@ -60,6 +85,7 @@ function createPiecePreviewScene(
 
 export function createHomePage(
   container: HTMLElement,
+
   callbacks: HomePageCallbacks,
 ): { destroy(): void } {
   const sceneContexts: SceneContext[] = [];
@@ -103,7 +129,7 @@ export function createHomePage(
           (4 cubelets each) — the seven polycubes of those sizes that aren't already rectangular prisms.
           Pieces <strong>A</strong> and <strong>B</strong> are mirror images of each other (chiral).
           The other planar pieces (L, T, Z) have symmetrical orientations reachable by rotation alone.
-          Drag to rotate each piece:
+          Left-drag (or touch and drag) to rotate, right-drag (or two-finger drag) to pan, and scroll (or pinch) to zoom:
         </p>
 
         <div class="${styles.pieceGrid}" id="piece-gallery"></div>
@@ -246,41 +272,56 @@ export function createHomePage(
   `;
 
   // Wire nav / CTA buttons
-  container.querySelectorAll('[data-action]').forEach((btn) => {
-    btn.addEventListener('click', () => {
+
+  container.querySelectorAll("[data-action]").forEach((btn) => {
+    btn.addEventListener("click", () => {
       const action = (btn as HTMLElement).dataset.action;
-      if (action === 'solutions') callbacks.onGoToSolutions();
-      else if (action === 'builder') callbacks.onGoToBuilder();
+
+      if (action === "solutions") callbacks.onGoToSolutions();
+      else if (action === "builder") callbacks.onGoToBuilder();
     });
   });
 
   // Build the piece gallery — defer one frame so containers have layout
+
   requestAnimationFrame(() => {
-    const gallery = container.querySelector('#piece-gallery');
+    const gallery = container.querySelector("#piece-gallery");
+
     if (!gallery) return;
 
     for (const piece of PIECE_NAMES) {
-      const card = document.createElement('div');
-      card.className = styles.pieceCard ?? '';
+      const card = document.createElement("div");
 
-      const labelEl = document.createElement('div');
-      labelEl.className = styles.pieceLabel ?? '';
+      card.className = styles.pieceCard ?? "";
+
+      const labelEl = document.createElement("div");
+
+      labelEl.className = styles.pieceLabel ?? "";
+
       labelEl.style.color = PIECE_COLORS[piece];
+
       labelEl.textContent = `Piece ${piece}`;
 
-      const sceneEl = document.createElement('div');
-      sceneEl.className = styles.pieceScene ?? '';
+      const sceneEl = document.createElement("div");
 
-      const metaEl = document.createElement('div');
-      metaEl.className = styles.pieceMeta ?? '';
-      metaEl.textContent = PIECE_DESCRIPTIONS[piece] ?? '';
+      sceneEl.className = styles.pieceScene ?? "";
+
+      const metaEl = document.createElement("div");
+
+      metaEl.className = styles.pieceMeta ?? "";
+
+      metaEl.textContent = PIECE_DESCRIPTIONS[piece] ?? "";
 
       card.appendChild(labelEl);
+
       card.appendChild(sceneEl);
+
       card.appendChild(metaEl);
+
       gallery.appendChild(card);
 
       const ctx = createPiecePreviewScene(sceneEl, piece);
+
       sceneContexts.push(ctx);
     }
   });
@@ -290,8 +331,10 @@ export function createHomePage(
       for (const ctx of sceneContexts) {
         ctx.dispose();
       }
+
       sceneContexts.length = 0;
-      container.innerHTML = '';
+
+      container.innerHTML = "";
     },
   };
 }

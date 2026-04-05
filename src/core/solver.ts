@@ -1,14 +1,14 @@
-import { PIECE_OFFSETS } from './pieces';
+import { PIECE_OFFSETS } from "./pieces";
 
 import {
   distinctPieceOrientations,
   normalizePositions,
   transformOffsets,
-} from './rotations';
+} from "./rotations";
 
-import type { Orientation, Placement, PieceName, Vec3 } from './types';
+import type { Orientation, Placement, PieceName, Vec3 } from "./types";
 
-import { PIECE_NAMES } from './types';
+import { PIECE_NAMES } from "./types";
 
 export interface PieceVariant {
   piece: PieceName;
@@ -202,7 +202,7 @@ export function solveAll(): Placement[][] {
  */
 
 export function solutionCanonicalKey(placements: Placement[]): string {
-  const grid = Array.from<string>({ length: 27 }).fill('.');
+  const grid = Array.from<string>({ length: 27 }).fill(".");
 
   for (const p of placements) {
     const offsets = PIECE_OFFSETS[p.piece];
@@ -216,7 +216,7 @@ export function solutionCanonicalKey(placements: Placement[]): string {
     }
   }
 
-  return grid.join('');
+  return grid.join("");
 }
 
 /**
@@ -326,7 +326,7 @@ export function solutionCanonicalKeyUnderRotation(
 
   const gridSize = 3;
 
-  const grid = Array.from<string>({ length: 27 }).fill('.');
+  const grid = Array.from<string>({ length: 27 }).fill(".");
 
   for (const p of placements) {
     const offsets = PIECE_OFFSETS[p.piece];
@@ -340,10 +340,10 @@ export function solutionCanonicalKeyUnderRotation(
 
   const symmetries = cubeSymmetries();
 
-  let minKey = grid.join('');
+  let minKey = grid.join("");
 
   for (const { fn: rot, det } of symmetries) {
-    const rotatedGrid = Array.from<string>({ length: 27 }).fill('.');
+    const rotatedGrid = Array.from<string>({ length: 27 }).fill(".");
 
     for (let x = 0; x < gridSize; x++) {
       for (let y = 0; y < gridSize; y++) {
@@ -352,8 +352,8 @@ export function solutionCanonicalKeyUnderRotation(
 
           // Reflections (det=-1) swap the chiral piece pair A↔B.
           if (det === -1) {
-            if (src === 'A') src = 'B';
-            else if (src === 'B') src = 'A';
+            if (src === "A") src = "B";
+            else if (src === "B") src = "A";
           }
 
           const dest = rot({ x, y, z });
@@ -363,7 +363,7 @@ export function solutionCanonicalKeyUnderRotation(
       }
     }
 
-    const key = rotatedGrid.join('');
+    const key = rotatedGrid.join("");
 
     if (key < minKey) {
       minKey = key;

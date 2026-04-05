@@ -1,16 +1,16 @@
-import type { PieceName, Placement } from '../../core/types';
-import { PIECE_NAMES } from '../../core/types';
-import { PIECE_COLORS } from '../../core/pieces';
-import { parseSolution, serializeSolution } from '../../core/notation';
+import type { PieceName, Placement } from "../../core/types";
+import { PIECE_NAMES } from "../../core/types";
+import { PIECE_COLORS } from "../../core/pieces";
+import { parseSolution, serializeSolution } from "../../core/notation";
 import {
   createScene,
   renderPlacements,
   renderGrid,
   setCameraForGrid,
   type SceneContext,
-} from '../Scene/Scene';
-import solutionsData from '../../data/solutions.json';
-import styles from './SolutionViewer.module.css';
+} from "../Scene/Scene";
+import solutionsData from "../../data/solutions.json";
+import styles from "./SolutionViewer.module.css";
 
 interface SolutionEntry {
   notation: string;
@@ -36,7 +36,7 @@ export function createSolutionViewer(
     container.innerHTML = `<div style="padding:40px;text-align:center;color:#c62828;">Invalid notation string.</div>`;
     return {
       destroy() {
-        container.innerHTML = '';
+        container.innerHTML = "";
       },
     };
   }
@@ -74,17 +74,17 @@ export function createSolutionViewer(
     return solutionPieces
       .map((name) => {
         const hidden = hiddenPieces.has(name);
-        return `<div class="${styles.pieceRow}${hidden ? ` ${styles.pieceRowHidden}` : ''}">
+        return `<div class="${styles.pieceRow}${hidden ? ` ${styles.pieceRowHidden}` : ""}">
           <span class="${styles.colorSwatch}" style="background:${PIECE_COLORS[name]}"></span>
           <span class="${styles.pieceName}">${name}</span>
-          <button class="${styles.toggleBtn}" data-toggle="${name}">${hidden ? 'Show' : 'Hide'}</button>
+          <button class="${styles.toggleBtn}" data-toggle="${name}">${hidden ? "Show" : "Hide"}</button>
         </div>`;
       })
-      .join('');
+      .join("");
   }
 
   function canonicalInfoHtml(): string {
-    if (!entry) return '';
+    if (!entry) return "";
     if (entry.distinct) {
       return `<div class="${styles.canonicalInfo}">
         <span class="${styles.distinctBadge}">One of 240 Distinct Solutions</span>
@@ -98,13 +98,13 @@ export function createSolutionViewer(
   }
 
   function updatePieceList() {
-    const el = container.querySelector('[data-piece-list]');
+    const el = container.querySelector("[data-piece-list]");
     if (el) el.innerHTML = pieceListHtml();
   }
 
   function handleClick(e: MouseEvent) {
     const btn = (e.target as HTMLElement).closest(
-      '[data-action],[data-toggle]',
+      "[data-action],[data-toggle]",
     ) as HTMLElement | null;
     if (!btn) return;
 
@@ -118,29 +118,29 @@ export function createSolutionViewer(
     }
 
     switch (btn.dataset.action) {
-      case 'home':
+      case "home":
         callbacks.onGoHome();
         break;
-      case 'back':
+      case "back":
         callbacks.onBackToList();
         break;
-      case 'show-all':
+      case "show-all":
         hiddenPieces.clear();
         updatePieceList();
         renderPlacements(sceneCtx!, getVisiblePlacements());
         break;
-      case 'hide-all':
+      case "hide-all":
         for (const n of solutionPieces) hiddenPieces.add(n);
         updatePieceList();
         renderPlacements(sceneCtx!, getVisiblePlacements());
         break;
-      case 'copy':
+      case "copy":
         navigator.clipboard.writeText(fullNotation);
         break;
     }
   }
 
-  container.addEventListener('click', handleClick);
+  container.addEventListener("click", handleClick);
 
   // Initial render
   container.innerHTML = `
@@ -159,6 +159,7 @@ export function createSolutionViewer(
       </div>
       <div class="${styles.main}">
         <div class="${styles.sceneContainer}" data-scene></div>
+        <div class="${styles.sceneHint}">Left-drag to rotate &middot; Right-drag to pan &middot; Scroll to zoom</div>
         <div class="${styles.notationBar}">
           <span class="${styles.notationText}">${escapeHtml(fullNotation)}</span>
           <button class="${styles.copyBtn}" data-action="copy">Copy</button>
@@ -166,7 +167,7 @@ export function createSolutionViewer(
       </div>
     </div>`;
 
-  const sceneContainer = container.querySelector('[data-scene]') as HTMLElement;
+  const sceneContainer = container.querySelector("[data-scene]") as HTMLElement;
   sceneCtx = createScene(sceneContainer, () => {
     if (sceneCtx) setCameraForGrid(sceneCtx, 3);
   });
@@ -176,18 +177,18 @@ export function createSolutionViewer(
 
   return {
     destroy() {
-      container.removeEventListener('click', handleClick);
+      container.removeEventListener("click", handleClick);
       sceneCtx?.dispose();
       sceneCtx = null;
-      container.innerHTML = '';
+      container.innerHTML = "";
     },
   };
 }
 
 function escapeHtml(str: string): string {
   return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }

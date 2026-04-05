@@ -3,14 +3,14 @@ import type {
   Placement,
   RotationStep,
   PieceArea,
-} from '../../core/types';
+} from "../../core/types";
 import {
   PIECE_NAMES,
   GRID_SIZE_BUILDER,
   BUILDER_STAGING_GAP,
-} from '../../core/types';
-import { PIECE_COLORS } from '../../core/pieces';
-import { parseSolution, serializeSolution } from '../../core/notation';
+} from "../../core/types";
+import { PIECE_COLORS } from "../../core/pieces";
+import { parseSolution, serializeSolution } from "../../core/notation";
 import {
   createScene,
   renderPlacements,
@@ -18,8 +18,8 @@ import {
   renderDualGridLabels,
   setCameraForDualGrids,
   type SceneContext,
-} from '../Scene/Scene';
-import styles from './BuilderView.module.css';
+} from "../Scene/Scene";
+import styles from "./BuilderView.module.css";
 
 interface PieceState {
   area: PieceArea;
@@ -41,7 +41,7 @@ const POSITION_OPTIONS = [0, 1, 2];
 
 function defaultPieceState(): PieceState {
   return {
-    area: 'hidden',
+    area: "hidden",
     orientation: { a: 0, b: 0, c: 0 },
     position: { x: 0, y: 0, z: 0 },
   };
@@ -63,7 +63,7 @@ function buildInitialState(
     if (parsed) {
       for (const p of parsed) {
         pieces[p.piece] = {
-          area: 'solution',
+          area: "solution",
           orientation: { ...p.orientation },
           position: { ...p.position },
         };
@@ -79,7 +79,7 @@ function buildInitialState(
       for (const p of parsed) {
         if (solutionPieces.has(p.piece)) continue;
         pieces[p.piece] = {
-          area: 'staging',
+          area: "staging",
           orientation: { ...p.orientation },
           position: { ...p.position },
         };
@@ -93,7 +93,7 @@ function buildInitialState(
 /** Convert piece state to a Placement with an X offset for the staging grid. */
 function toPlacement(piece: PieceName, ps: PieceState): Placement {
   const xOffset =
-    ps.area === 'staging' ? GRID_SIZE_BUILDER + BUILDER_STAGING_GAP : 0;
+    ps.area === "staging" ? GRID_SIZE_BUILDER + BUILDER_STAGING_GAP : 0;
   return {
     piece,
     orientation: { ...ps.orientation },
@@ -122,7 +122,7 @@ export function createBuilderView(
     const result: Placement[] = [];
     for (const name of PIECE_NAMES) {
       const ps = state.pieces[name];
-      if (ps.area !== 'hidden') {
+      if (ps.area !== "hidden") {
         result.push(toPlacement(name, ps));
       }
     }
@@ -133,7 +133,7 @@ export function createBuilderView(
     const result: Placement[] = [];
     for (const name of PIECE_NAMES) {
       const ps = state.pieces[name];
-      if (ps.area === 'solution') {
+      if (ps.area === "solution") {
         result.push({
           piece: name,
           orientation: { ...ps.orientation },
@@ -148,7 +148,7 @@ export function createBuilderView(
     const result: Placement[] = [];
     for (const name of PIECE_NAMES) {
       const ps = state.pieces[name];
-      if (ps.area === 'staging') {
+      if (ps.area === "staging") {
         result.push({
           piece: name,
           orientation: { ...ps.orientation },
@@ -171,7 +171,7 @@ export function createBuilderView(
     const solutionStr =
       solutionPlacements.length > 0
         ? serializeSolution(solutionPlacements)
-        : '(empty)';
+        : "(empty)";
     const notationEl = container.querySelector(`.${styles.notation}`);
     if (notationEl) {
       notationEl.textContent = solutionStr;
@@ -182,7 +182,7 @@ export function createBuilderView(
     const solutionPlacements = getSolutionPlacements();
     const stagingPlacements = getStagingPlacements();
 
-    const parts: string[] = ['view=build'];
+    const parts: string[] = ["view=build"];
     if (solutionPlacements.length > 0) {
       parts.push(`notation=${serializeSolution(solutionPlacements)}`);
     }
@@ -190,7 +190,7 @@ export function createBuilderView(
       parts.push(`stagingAreaNotation=${serializeSolution(stagingPlacements)}`);
     }
 
-    window.history.replaceState(null, '', `#${parts.join('&')}`);
+    window.history.replaceState(null, "", `#${parts.join("&")}`);
   }
 
   function radioGroup(
@@ -201,9 +201,9 @@ export function createBuilderView(
     return options
       .map(
         (o) =>
-          `<label class="${styles.radioLabel}"><input type="radio" name="${groupName}" value="${o.value}" ${o.value === selected ? 'checked' : ''} />${o.label}</label>`,
+          `<label class="${styles.radioLabel}"><input type="radio" name="${groupName}" value="${o.value}" ${o.value === selected ? "checked" : ""} />${o.label}</label>`,
       )
-      .join('');
+      .join("");
   }
 
   function renderFormPanel(): string {
@@ -215,9 +215,9 @@ export function createBuilderView(
     const ps = state.pieces[piece];
 
     const areaOptions = [
-      { value: 'hidden', label: 'Hidden' },
-      { value: 'staging', label: 'Staging Area' },
-      { value: 'solution', label: 'Solution Area' },
+      { value: "hidden", label: "Hidden" },
+      { value: "staging", label: "Staging Area" },
+      { value: "solution", label: "Solution Area" },
     ];
 
     const posOptions = POSITION_OPTIONS.map((v) => ({
@@ -292,24 +292,24 @@ export function createBuilderView(
     const notationStr =
       solutionPlacements.length > 0
         ? serializeSolution(solutionPlacements)
-        : '(empty)';
+        : "(empty)";
 
     const pieceBtns = PIECE_NAMES.map((name) => {
       const active = state.selectedPiece === name;
       const ps = state.pieces[name];
-      const visible = ps.area !== 'hidden';
+      const visible = ps.area !== "hidden";
       let cls = styles.pieceBtn;
       if (active) cls += ` ${styles.pieceBtnActive}`;
       if (visible) cls += ` ${styles.pieceBtnVisible}`;
       const areaLabel =
-        ps.area === 'solution' ? 'S' : ps.area === 'staging' ? 'T' : '';
+        ps.area === "solution" ? "S" : ps.area === "staging" ? "T" : "";
       return `
         <button class="${cls}" data-piece="${name}">
           <span class="${styles.colorSwatch}" style="background:${PIECE_COLORS[name]}"></span>
           ${name}
-          ${visible ? `<span class="${styles.visibleIndicator}">${areaLabel}</span>` : ''}
+          ${visible ? `<span class="${styles.visibleIndicator}">${areaLabel}</span>` : ""}
         </button>`;
-    }).join('');
+    }).join("");
 
     if (!sceneCtx) {
       container.innerHTML = `
@@ -325,6 +325,7 @@ export function createBuilderView(
           </div>
           <div class="${styles.main}">
             <div class="${styles.sceneContainer}" data-scene></div>
+            <div class="${styles.sceneHint}">Left-drag to rotate &middot; Right-drag to pan &middot; Scroll to zoom</div>
             <div class="${styles.statusBar}">
               <span class="${styles.notation}">${escapeHtml(notationStr)}</span>
               <button class="${styles.copyBtn}" data-action="copy">Copy</button>
@@ -333,7 +334,7 @@ export function createBuilderView(
         </div>`;
 
       const sceneContainer = container.querySelector(
-        '[data-scene]',
+        "[data-scene]",
       ) as HTMLElement;
       sceneCtx = createScene(sceneContainer, () => {
         if (sceneCtx)
@@ -362,26 +363,26 @@ export function createBuilderView(
   }
 
   function bindEvents() {
-    container.querySelectorAll('[data-piece]').forEach((btn) => {
-      btn.addEventListener('click', () => {
+    container.querySelectorAll("[data-piece]").forEach((btn) => {
+      btn.addEventListener("click", () => {
         const piece = (btn as HTMLElement).dataset.piece as PieceName;
         state.selectedPiece = piece;
         renderUI();
       });
     });
 
-    container.querySelectorAll('[data-action]').forEach((btn) => {
-      btn.addEventListener('click', () => {
+    container.querySelectorAll("[data-action]").forEach((btn) => {
+      btn.addEventListener("click", () => {
         const action = (btn as HTMLElement).dataset.action;
-        if (action === 'reset') {
+        if (action === "reset") {
           for (const name of PIECE_NAMES) {
             state.pieces[name] = defaultPieceState();
           }
           state.selectedPiece = null;
           renderUI();
-        } else if (action === 'home') {
+        } else if (action === "home") {
           callbacks.onGoHome();
-        } else if (action === 'copy') {
+        } else if (action === "copy") {
           const solutionPlacements = getSolutionPlacements();
           if (solutionPlacements.length > 0) {
             navigator.clipboard.writeText(
@@ -396,8 +397,8 @@ export function createBuilderView(
     const areaGroup = container.querySelector('[data-field="area"]');
     if (areaGroup && state.selectedPiece) {
       const piece = state.selectedPiece;
-      areaGroup.querySelectorAll('input[type=radio]').forEach((radio) => {
-        radio.addEventListener('change', () => {
+      areaGroup.querySelectorAll("input[type=radio]").forEach((radio) => {
+        radio.addEventListener("change", () => {
           const value = (radio as HTMLInputElement).value as PieceArea;
           state.pieces[piece].area = value;
           renderUI();
@@ -406,12 +407,12 @@ export function createBuilderView(
     }
 
     // Position radio buttons
-    for (const axis of ['x', 'y', 'z'] as const) {
+    for (const axis of ["x", "y", "z"] as const) {
       const group = container.querySelector(`[data-field="pos-${axis}"]`);
       if (group && state.selectedPiece) {
         const piece = state.selectedPiece;
-        group.querySelectorAll('input[type=radio]').forEach((radio) => {
-          radio.addEventListener('change', () => {
+        group.querySelectorAll("input[type=radio]").forEach((radio) => {
+          radio.addEventListener("change", () => {
             const value = parseInt((radio as HTMLInputElement).value, 10);
             state.pieces[piece].position = {
               ...state.pieces[piece].position,
@@ -424,12 +425,12 @@ export function createBuilderView(
     }
 
     // Rotation radio buttons
-    for (const axis of ['a', 'b', 'c'] as const) {
+    for (const axis of ["a", "b", "c"] as const) {
       const group = container.querySelector(`[data-field="rot-${axis}"]`);
       if (group && state.selectedPiece) {
         const piece = state.selectedPiece;
-        group.querySelectorAll('input[type=radio]').forEach((radio) => {
-          radio.addEventListener('change', () => {
+        group.querySelectorAll("input[type=radio]").forEach((radio) => {
+          radio.addEventListener("change", () => {
             const value = parseInt(
               (radio as HTMLInputElement).value,
               10,
@@ -452,15 +453,15 @@ export function createBuilderView(
     destroy() {
       sceneCtx?.dispose();
       sceneCtx = null;
-      container.innerHTML = '';
+      container.innerHTML = "";
     },
   };
 }
 
 function escapeHtml(str: string): string {
   return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }

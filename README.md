@@ -1,5 +1,7 @@
 # Soma Cube Solver & Visualizer
 
+**[Live Demo](https://xanticious.github.io/soma-cube-solver/)**
+
 A static web app for solving and visualizing solutions to the [Soma cube](https://en.wikipedia.org/wiki/Soma_cube) — a classic 3D block-placing puzzle where seven irregular pieces must be assembled into a 3×3×3 cube.
 
 ## Features
