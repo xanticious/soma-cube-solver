@@ -100,8 +100,7 @@ export function createHomePage(
 
         <p class="${styles.prose}">
           The set consists of one <strong>tricube</strong> (3 cubelets) and six <strong>tetracubes</strong>
-          (4 cubelets each). Every piece is the unique irregular polycube of its size — that is,
-          every shape that cannot be assembled into a rectangular box on its own.
+          (4 cubelets each) — the seven polycubes of those sizes that aren't already rectangular prisms.
           Pieces <strong>A</strong> and <strong>B</strong> are mirror images of each other (chiral).
           The other planar pieces (L, T, Z) have symmetrical orientations reachable by rotation alone.
           Drag to rotate each piece:
