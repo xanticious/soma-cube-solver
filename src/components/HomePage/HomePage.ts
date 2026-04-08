@@ -1,40 +1,42 @@
-import { PIECE_COLORS, PIECE_OFFSETS } from "../../core/pieces";
+import { PIECE_COLORS, PIECE_OFFSETS } from '../../core/pieces';
 
-import { PIECE_NAMES } from "../../core/types";
+import { PIECE_NAMES } from '../../core/types';
 
-import type { PieceName } from "../../core/types";
+import type { PieceName } from '../../core/types';
 
 import {
   createScene,
   renderPlacements,
   renderGrid,
   type SceneContext,
-} from "../Scene/Scene";
+} from '../Scene/Scene';
 
-import styles from "./HomePage.module.css";
+import styles from './HomePage.module.css';
 
 export interface HomePageCallbacks {
   onGoToSolutions(): void;
 
   onGoToBuilder(): void;
+
+  onGoToConverter(): void;
 }
 
 // Piece descriptions shown under each preview
 
 const PIECE_DESCRIPTIONS: Record<PieceName, string> = {
-  V: "tricube (3 cubelets)",
+  V: 'tricube (3 cubelets)',
 
-  L: "L-tetracube",
+  L: 'L-tetracube',
 
-  T: "T-tetracube",
+  T: 'T-tetracube',
 
-  Z: "Z-tetracube (skew)",
+  Z: 'Z-tetracube (skew)',
 
-  A: "left-handed screw",
+  A: 'left-handed screw',
 
-  B: "right-handed screw",
+  B: 'right-handed screw',
 
-  P: "branch",
+  P: 'branch',
 };
 
 function createPiecePreviewScene(
@@ -96,6 +98,7 @@ export function createHomePage(
         <span class="${styles.navTitle}">Soma Cube Solver</span>
         <button class="${styles.navBtn} ${styles.navBtnPrimary}" data-action="solutions">Solutions</button>
         <button class="${styles.navBtn}" data-action="builder">Builder</button>
+        <button class="${styles.navBtn}" data-action="converter">Converter</button>
       </nav>
 
       <div class="${styles.content}">
@@ -273,44 +276,45 @@ export function createHomePage(
 
   // Wire nav / CTA buttons
 
-  container.querySelectorAll("[data-action]").forEach((btn) => {
-    btn.addEventListener("click", () => {
+  container.querySelectorAll('[data-action]').forEach((btn) => {
+    btn.addEventListener('click', () => {
       const action = (btn as HTMLElement).dataset.action;
 
-      if (action === "solutions") callbacks.onGoToSolutions();
-      else if (action === "builder") callbacks.onGoToBuilder();
+      if (action === 'solutions') callbacks.onGoToSolutions();
+      else if (action === 'builder') callbacks.onGoToBuilder();
+      else if (action === 'converter') callbacks.onGoToConverter();
     });
   });
 
   // Build the piece gallery — defer one frame so containers have layout
 
   requestAnimationFrame(() => {
-    const gallery = container.querySelector("#piece-gallery");
+    const gallery = container.querySelector('#piece-gallery');
 
     if (!gallery) return;
 
     for (const piece of PIECE_NAMES) {
-      const card = document.createElement("div");
+      const card = document.createElement('div');
 
-      card.className = styles.pieceCard ?? "";
+      card.className = styles.pieceCard ?? '';
 
-      const labelEl = document.createElement("div");
+      const labelEl = document.createElement('div');
 
-      labelEl.className = styles.pieceLabel ?? "";
+      labelEl.className = styles.pieceLabel ?? '';
 
       labelEl.style.color = PIECE_COLORS[piece];
 
       labelEl.textContent = `Piece ${piece}`;
 
-      const sceneEl = document.createElement("div");
+      const sceneEl = document.createElement('div');
 
-      sceneEl.className = styles.pieceScene ?? "";
+      sceneEl.className = styles.pieceScene ?? '';
 
-      const metaEl = document.createElement("div");
+      const metaEl = document.createElement('div');
 
-      metaEl.className = styles.pieceMeta ?? "";
+      metaEl.className = styles.pieceMeta ?? '';
 
-      metaEl.textContent = PIECE_DESCRIPTIONS[piece] ?? "";
+      metaEl.textContent = PIECE_DESCRIPTIONS[piece] ?? '';
 
       card.appendChild(labelEl);
 
@@ -334,7 +338,7 @@ export function createHomePage(
 
       sceneContexts.length = 0;
 
-      container.innerHTML = "";
+      container.innerHTML = '';
     },
   };
 }

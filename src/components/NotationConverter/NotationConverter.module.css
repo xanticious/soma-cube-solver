@@ -1,0 +1,273 @@
+.page {
+  height: 100%;
+  overflow-y: auto;
+  background: #f5f5f5;
+}
+
+.content {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+}
+
+/* --- Nav bar --- */
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 24px;
+  background: #fff;
+  border-bottom: 1px solid #e0e0e0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.navTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #333;
+  margin-right: auto;
+}
+
+.navBtn {
+  padding: 7px 18px;
+  border: 1px solid #ccc;
+  background: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  border-radius: 4px;
+  font-family: inherit;
+  color: #333;
+}
+
+.navBtn:hover {
+  background: #f0f0f0;
+}
+
+/* --- Section titles --- */
+
+.pageTitle {
+  font-size: 36px;
+  font-weight: 800;
+  color: #111;
+  margin-bottom: 8px;
+  line-height: 1.1;
+}
+
+.pageSubtitle {
+  font-size: 15px;
+  line-height: 1.75;
+  color: #666;
+  margin-bottom: 40px;
+}
+
+.sectionTitle {
+  font-size: 22px;
+  font-weight: 700;
+  color: #111;
+  margin-top: 48px;
+  margin-bottom: 12px;
+  padding-top: 8px;
+  border-top: 2px solid #e0e0e0;
+}
+
+.prose {
+  font-size: 14px;
+  line-height: 1.7;
+  color: #555;
+  margin-bottom: 14px;
+}
+
+.prose code {
+  background: #ebebeb;
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  color: #c62828;
+}
+
+/* --- Input / output blocks --- */
+
+.inputLabel {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 6px;
+}
+
+.textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  resize: vertical;
+  background: #fff;
+  color: #1a1a2e;
+  line-height: 1.6;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: #0057a8;
+  box-shadow: 0 0 0 2px rgba(0, 87, 168, 0.15);
+}
+
+.convertBtn {
+  margin-top: 12px;
+  padding: 9px 22px;
+  background: #0057a8;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.convertBtn:hover {
+  background: #004080;
+}
+
+.outputBlock {
+  margin-top: 16px;
+  padding: 12px 14px;
+  background: #f0f4ff;
+  border-left: 3px solid #0057a8;
+  border-radius: 0 4px 4px 0;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  color: #1a1a2e;
+  word-break: break-all;
+  white-space: pre-wrap;
+  position: relative;
+  min-height: 40px;
+}
+
+.outputEmpty {
+  color: #aaa;
+  font-style: italic;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.errorBlock {
+  margin-top: 16px;
+  padding: 10px 14px;
+  background: #fff0f0;
+  border-left: 3px solid #c62828;
+  border-radius: 0 4px 4px 0;
+  font-size: 13px;
+  color: #c62828;
+}
+
+.copyBtn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-family: inherit;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  cursor: pointer;
+  color: #333;
+}
+
+.copyBtn:hover {
+  background: #f0f0f0;
+}
+
+/* --- Symbol mapping table --- */
+
+.mappingGrid {
+  display: grid;
+  grid-template-columns: repeat(7, auto);
+  gap: 8px 16px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.mappingHeader {
+  font-size: 12px;
+  font-weight: 700;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.mappingPieceLabel {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.mappingInput {
+  width: 46px;
+  padding: 5px 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  text-align: center;
+  background: #fff;
+  color: #1a1a2e;
+  text-transform: none;
+}
+
+.mappingInput:focus {
+  outline: none;
+  border-color: #0057a8;
+  box-shadow: 0 0 0 2px rgba(0, 87, 168, 0.15);
+}
+
+/* --- Common notation preview grid --- */
+
+.gridDisplay {
+  display: inline-grid;
+  grid-template-columns: repeat(3, 1fr) 16px repeat(3, 1fr) 16px repeat(3, 1fr);
+  gap: 3px 3px;
+  margin-top: 14px;
+  margin-bottom: 4px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 14px;
+}
+
+.gridCell {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Courier New', monospace;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 3px;
+  border: 1px solid #ddd;
+  background: #f9f9f9;
+  color: #333;
+}
+
+.gridSpacer {
+  width: 16px;
+}
+
+.gridLayerLabel {
+  grid-column: span 3;
+  font-size: 11px;
+  color: #999;
+  text-align: center;
+  padding-bottom: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
