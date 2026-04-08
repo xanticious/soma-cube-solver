@@ -31,17 +31,41 @@ const DISPLAY_COLORS: Record<PieceName, string> = {
 //     positions 18–26→ row 2 (y=2): same structure
 //
 //   i → { x: i%3, z: floor((i%9)/3), y: floor(i/9) }
-//   x,y,z → i = y*9 + z*3 + x
+// Coordinate mapping between the 27-char common format and (x, y, z):
+//
+//   Common notation (stripped, 27 chars):
+//     Left block   (positions 0–2, 9–11, 18–20) = top layer    → y = 2 in 3D
+//     Middle block (positions 3–5, 12–14, 21–23) = middle layer → y = 1 in 3D
+//     Right block  (positions 6–8, 15–17, 24–26) = bottom layer → y = 0 in 3D
+//
+//   Within each block, text rows map to the Z axis in 3D:
+//     text row 0 (top)    → z = 0
+//     text row 1 (middle) → z = 1
+//     text row 2 (bottom) → z = 2
+//
+//   Columns within each block map to X:
+//     col 0 (left) → x = 0 … col 2 (right) → x = 2
+//
+//   3D (x, y, z) derived from position i in stripped string:
+//     layer = floor((i % 9) / 3)  [0 = left/top, 2 = right/bottom]
+//     row   = floor(i / 9)         [0 = top text row, 2 = bottom]
+//     col   = i % 3
+//     → x = col,  y = 2 − layer,  z = row
+//
+//   Inverse (3D → display grid index for formatCommonNotation):
+//     displayIndex = z * 9 + (2 − y) * 3 + x
 // ---------------------------------------------------------------------------
 
 function indexToXYZ(i: number): Vec3 {
   return {
     x: i % 3,
-    y: Math.floor(i / 9),
-    z: Math.floor((i % 9) / 3),
+    y: 2 - Math.floor((i % 9) / 3),
+    z: Math.floor(i / 9),
   };
 }
 
+// xyzToIndex is a DISPLAY-only helper: (col, textRow, displayLayer) → array index.
+// displayLayer 0 = left/top block, 2 = right/bottom block.
 function xyzToIndex(x: number, y: number, z: number): number {
   return y * 9 + z * 3 + x;
 }
@@ -250,7 +274,7 @@ function formatCommonNotation(
         };
       }
 
-      const idx = xyzToIndex(c.x, c.y, c.z);
+      const idx = c.z * 9 + (2 - c.y) * 3 + c.x;
 
       if (grid[idx] !== '') {
         return {
@@ -427,7 +451,7 @@ export function createNotationConverter(
           Example:
         </p>
 
-        <div class="${styles.outputBlock}" style="margin-bottom:14px">V000.0.0.1~L002.0.0.2~T000.0.0.0~Z101.2.0.1~A012.1.1.0~B003.0.1.1~P010.0.1.0</div>
+        <div class="${styles.outputBlock}" style="margin-bottom:14px">V010.0.1.0~L032.0.0.0~T010.0.2.0~Z001.2.0.0~A002.1.1.1~B030.0.0.1~P011.0.1.1</div>
 
         <label class="${styles.inputLabel}" for="nc-input-ours">Our notation:</label>
         <textarea
